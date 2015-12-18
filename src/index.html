@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en" data-owner="vilian" data-app="appid">
+<head>
+	<meta http-equiv=Content-Type content="text/html;charset=utf-8">
+	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="format-detection" content="telephone=yes">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="description" content="Supmice......">
+	<meta name="author" content="redy">
+	<!-- Favicons -->
+	<link rel="apple-touch-icon-precomposed" sizes="144x144"
+				href="ico/apple-touch-icon-144-precomposed.png">
+	<link rel="shortcut icon" href="ico/favicon.png">
+	<title>Supmice Member logout</title>
+
+	<!-- JS -->
+	<script src="scripts/jquery-2.1.1.min.js"></script>
+	<script src="scripts/jquery.cookie.js"></script>
+	<script src="scripts/member.core.js"></script>
+	<script>
+		$(document).ready(function(){
+			var auth = $.cookie("auth");
+			console.log(auth);
+			if(auth && auth != "null"){
+				$('#profile').show();
+				$('#log').hide();
+				console.log("right");
+			}else{
+				$('#profile').hide();
+				$('#log').show();
+				console.log("wrong");
+			}
+		});
+	</script>
+	<script src="scripts/member.function.js"></script>
+
+</head>
+<body>
+<div id="log">
+	<a href="login.html">login</a>
+</div>
+<div id="profile">
+	<p class="member-name"></p>
+	<p class="member-email"></p>
+	<p class="member-photo"></p>
+	<p class="member-mobile"></p>
+	<input type="submit" id="logout" value="logout"/>
+	<a href="edit_profile.html">Edit</a>
+</div>
+<div class="applyment" data-alias="test_activity">
+
+</div>
+</body>
+</html>
