@@ -14,6 +14,8 @@
     "tests"
   ],
   "dependencies": {
-    "ajax": "~0.0.15"
+    "ajax": "~0.0.15",
+    "js-cookie": "~2.0.4",
+    "jquery": "~2.1.4"
   }
 }

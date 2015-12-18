@@ -1,0 +1,21 @@
+{
+  "watch":{
+    "src": "src",
+    "dest": "build",
+    "clean": true,
+    "server": true,
+    "port": 9000
+  },
+  "init":{
+    "copy": {
+      "libs":{
+        "flatten": true,
+        "src":[
+          "jquery/dist/jquery.min.js"
+        ],
+        "cwd":"bower_components",
+        "dest":"src/scripts/libs"
+      }
+    }
+  }
+}
