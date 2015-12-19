@@ -7,21 +7,20 @@ root = if is_exports then exports else this
 
 
 default_options = 
-  apiBaseURL: 'http://api.sup.farm'
+  apiBaseURL: 'http://localhost:5000'
   contentType: 'application/json'
-  withCredentials: true
+  responseType: 'json'
+  withCredentials: false
   
-root.SupMember = (owner, app_id, opts) ->
+root.SupMember = (app_id, opts) ->
   options = opts or default_options
-  owner = owner or $('html').data('owner')
-  cookie_domain = app_id or $('html').data('app')
-      
-  if typeof owner != 'string'
-    console.error 'Owner not found!'
-    return
-
-  if typeof cookie_domain != 'string'
-    console.error 'App not found!'
+  cookie_domain = app_id
+  if not app_id
+    html = document.documentElement
+    app_id = (html.getAttribute('app') or html.dataset.app)
+    
+  if typeof app_id != 'string'
+    throw 'App not found!'
     return
   
   request_types = [
@@ -34,146 +33,133 @@ root.SupMember = (owner, app_id, opts) ->
   ajax = new Ajax()
   
   # define request function
-  request = (request, success_callback, error_callback) ->
-    if typeof request.api isnt 'string' or not request.api
-      throw InvalidRequestAPI
-
-    if request.type not in request_types
-      throw InvalidRequestType
-
-    res = resource[request.api]
-    
-    if not res
-      throw ResouceNotFound
-
-    if request.type not in ['GET', 'DELETE']
-      try
-        request_data = JSON.stringify(request.data)
-      catch error
-        throw error
-    else
-      request_data = null
+  do_request = (request, success_callback, failed_callback) ->
 
     ajax.send
       type: request.type
       url: request.url
       params: request.params
-      data: request_data
+      data: request.data
       contentType: request.contentType or options.contentType
+      responseType: request.responseType or options.responseType
       withCredentials: request.withCredentials or options.withCredentials
-      headers: 'authorization': request.authorization
-    
+      headers:
+        'authorization': request.authorization
+
     .then (data, xhr)->
       if typeof success_callback is 'function'
         success_callback data, xhr
-      console.log this
       return this
 
     .catch (error, xhr)->
-      if typeof error_callback is 'function'
-        error_callback error
-      console.log this
+      if typeof failed_callback is 'function'
+        failed_callback error
       return this
-  
+
 
   # define api resource
   api = options.apiBaseURL
-  api_open = api + '/crm/entr/' + owner
-  api_member = api + '/crm/memb/' + owner
+  api_open = api + '/crm/entr/' + app_id
+  api_member = api + '/crm/memb/' + app_id
   
+
   resources =
-    register: (params, data)->
-      request
+    request: do_request
+    register: (data, success, failed)->
+      do_request
         url: api_open + '/register'
         type: 'POST'
         data: data
-        params: params
+      , success
+      , failed
       
-      
-    join: (params, data)->
-      request
+    join: (data, success, failed)->
+      do_request
         url: api_open + '/join'
         type: 'POST'
         data: data
-        params: params
-     
+      , success
+      , failed
 
-    login: (params, data)->
-      request
+    login: (data, success, failed)->
+      do_request
         url: api_open + '/login'
         type: 'POST'
         data: data
-        params: params
+      , success
+      , failed
       
-      
-    recover_pwd: (params, data)->
-      request
+    recover_pwd: (data, success, failed)->
+      do_request
         url: api_open + '/recover_pwd'
         type: 'POST'
         data: data
-        params: params
-      
+      , success
+      , failed
 
-    update_pwd: (params, data)->
-      request
+    update_pwd: (data, success, failed)->
+      do_request
         url: api_member + '/update_pwd'
         type: 'POST'
         data: data
-        params: params
+      , success
+      , failed
       
-      
-    logout: (params, data)->
-      request
+    logout: (data, success, failed)->
+      do_request
         url: api_member + '/logout'
         type: 'GET'
         data: data
-        params: params
-      
+      , success
+      , failed
 
-    get_profile: (params, data)->
-      request
+    get_profile: (data, success, failed)->
+      do_request
         url: api_member + '/profile'
         type: 'GET'
         data: data
-        params: params
-      
+      , success
+      , failed
 
-    update_profile: (params, data)->
-      request
+    update_profile: (data, success, failed)->
+      do_request
         url: api_member + '/profile'
         type: 'PUT'
         data: data
-        params: params
-        
+      , success
+      , failed
 
-    free_apply: (params, data)->
-      request
+    free_apply: (data, success, failed)->
+      do_request
         url: api_open + '/applyment'
         type: 'POST'
         data: data
-        params: params
-      
+      , success
+      , failed
 
-    make_apply: (params, data)->
-      request
+    make_apply: (data, success, failed)->
+      do_request
         url: api_member + '/applyment'
         type: 'POST'
         data: data
-        params: params
-        
-    get_apply: (params, data)->
-      request
+      , success
+      , failed
+      
+    get_apply: (data, success, failed)->
+      do_request
         url: api_member + '/applyment'
         type: 'GET'
         data: data
-        params: params
+      , success
+      , failed
         
-    delete_apply: (params, data)->
-      request
+    delete_apply: (data, success, failed)->
+      do_request
         url: api_member + '/applyment'
         type: 'DELETE'
         data: data
-        params: params
+      , success
+      , failed
 
   return resources
   
@@ -195,7 +181,7 @@ root.Ajax = ->
     catch: ->
     finally: ->
 
-  request:
+  ajax =
     get: (request) ->
       XHRConnection 'GET', request
     post: (request) ->
@@ -207,23 +193,29 @@ root.Ajax = ->
     send: (request) ->
       XHRConnection request.type, request
 
+
   XHRConnection = (type, request) ->
-    xhr = new XMLHttpRequest
+    xhr = new XMLHttpRequest()
     url = add_params(request.url, request.params)
-    
+
     xhr.open type, url or '', true
 
-    xhr.setRequestHeader 'Content-Type', request.contentType
-    for k,v of request.headers
-      xhr.setRequestHeader k, v
+    xhr.responseType = request.responseType
     xhr.withCredentials = Boolean(request.withCredentials)
+
+    xhr.setRequestHeader 'Content-Type', request.contentType
+
+    if typeof request.headers is 'object'
+      for k,v of request.headers
+        xhr.setRequestHeader k, v
+    
     xhr.addEventListener 'readystatechange', ready
     
     if type in ['GET', 'DELETE']
       xhr.send()
     else
       try
-        send_data = JSON.stringify(data)
+        send_data = JSON.stringify(request.data)
       catch error
         throw error
       xhr.send(send_data)
@@ -232,36 +224,38 @@ root.Ajax = ->
 
 
   ready = (e)->
-    console.log e
     xhr = this
     if xhr.readyState == xhr.DONE
       xhr.removeEventListener 'readystatechange', ready
-      promise_methods.always.apply promise_methods, parse_response(xhr)
+      promise_methods.finally.apply promise_methods, parse_response(xhr)
       if xhr.status >= 200 and xhr.status < 300
-        return promise_methods.done.apply(promise_methods,
+        return promise_methods.then.apply(promise_methods,
                                           parse_response(xhr))
-      promise_methods.error.apply(promise_methods,
+      promise_methods.catch.apply(promise_methods,
                                   parse_response(xhr))
     return
 
   
   add_params = (url, params)->
     joint = if url.indexOf('?') > -1 then '&' else '?'
-    for param in params
-      url = url+joint+param
+    if typeof params isnt 'object'
+      return url
+    for k, v of params
+      url = url+joint+k+'='+v
       joint = '&' if joint != '&'
     return url
   
   parse_response = (xhr) ->
     result = undefined
-    try
-      result = JSON.parse(xhr.responseText)
-    catch e
-      result = xhr.responseText
-    [
-      result
-      xhr
-    ]
+    if xhr.responseType is 'json'
+      result = xhr.response
+    else
+      try
+        result = JSON.parse(xhr.responseText)
+      catch e
+        result = xhr.responseText
+        
+    return [result, xhr]
 
   promises = ->
     all_promises = {}
@@ -276,7 +270,7 @@ root.Ajax = ->
       promise_methods[method] = callback
       this
 
-  return request
+  return ajax
 
 # Cookie
 root.Cookie =

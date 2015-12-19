@@ -1,13 +1,12 @@
 <!DOCTYPE html>
-<html lang="en" data-owner="vilian" data-app="appid">
+<html lang="en" data-app="5618bd3ef596b149a47b8df9">
 {% include '_head_.html' %}
 <body>
   <div>
   	Login
   	<p id="seccesed" style="display: none;">Login seccessed!</p>
-  	<p id="false" style="display: none;">Login failed!</p>
-  	<p id="null" style="display: none;">Please input Username!</p>
-  	<form>
+  	<p id="failed" style="display: none;">Login failed!</p>
+  	<form id="login-form">
   		<p>
   			Name:
   			<input type="text" name="LoginName" title="input name"/>
@@ -24,6 +23,6 @@
   	<a href="register.html">Register</a>
   	<a href="recover_pwd.html">Recover</a>
   </div>
-  {% include '_js_.html' %}
+{% include '_js_.html' %}
 </body>
 </html>
