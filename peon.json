@@ -11,7 +11,8 @@
       "libs":{
         "flatten": true,
         "src":[
-          "jquery/dist/jquery.min.js"
+          "jquery/dist/jquery.min.js",
+          "q/q.js"
         ],
         "cwd":"bower_components",
         "dest":"src/scripts/libs"

@@ -5,15 +5,22 @@
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
 
+token_cookie_name = 'sup_member_auth'
+profile_cookie_name = 'sup_member_profile'
+
 
 default_options = 
   apiBaseURL: 'http://localhost:5000'
   contentType: 'application/json'
   responseType: 'json'
   withCredentials: false
+  expires: 1000*3600*24
   
 root.SupMember = (app_id, opts) ->
-  options = opts or default_options
+  options = default_options
+  for k,v of opts
+    options[k] = v
+
   cookie_domain = app_id
   if not app_id
     html = document.documentElement
@@ -34,8 +41,12 @@ root.SupMember = (app_id, opts) ->
   
   # define request function
   do_request = (request, success_callback, failed_callback) ->
+    if typeof request.headers isnt 'object'
+      request.headers = {}
+    if request.token
+      request.headers['Authorization'] = 'Bearer '+request.token
 
-    ajax.send
+    response = ajax.send
       type: request.type
       url: request.url
       params: request.params
@@ -43,27 +54,33 @@ root.SupMember = (app_id, opts) ->
       contentType: request.contentType or options.contentType
       responseType: request.responseType or options.responseType
       withCredentials: request.withCredentials or options.withCredentials
-      headers:
-        'authorization': request.authorization
-
-    .then (data, xhr)->
-      if typeof success_callback is 'function'
-        success_callback data, xhr
-      return this
-
-    .catch (error, xhr)->
-      if typeof failed_callback is 'function'
+      headers: request.headers
+      
+    if typeof success_callback is 'function'
+      response.then (data)->
+        success_callback data
+        return data
+    
+    if typeof failed_callback is 'function'
+      response.catch (error)->
         failed_callback error
-      return this
+        return error
 
-
+    return response
+  
+  # define reject invalid
+  do_reject = (msg) ->
+    deferred = Q.defer()
+    deferred.reject(msg)
+    return deferred.promise
+  
   # define api resource
   api = options.apiBaseURL
   api_open = api + '/crm/entr/' + app_id
   api_member = api + '/crm/memb/' + app_id
   
 
-  resources =
+  member =
     request: do_request
     register: (data, success, failed)->
       do_request
@@ -86,7 +103,13 @@ root.SupMember = (app_id, opts) ->
         url: api_open + '/login'
         type: 'POST'
         data: data
-      , success
+      , (data)->
+        try
+          supCookie.set token_cookie_name, data.token, options.expires
+        catch e
+          console.error e
+        if typeof success is 'function'
+          success(data)
       , failed
       
     recover_pwd: (data, success, failed)->
@@ -102,23 +125,37 @@ root.SupMember = (app_id, opts) ->
         url: api_member + '/update_pwd'
         type: 'POST'
         data: data
+        token: supCookie.get token_cookie_name
       , success
       , failed
       
-    logout: (data, success, failed)->
+    logout: (success, failed)->
       do_request
         url: api_member + '/logout'
         type: 'GET'
-        data: data
-      , success
+        token: supCookie.get token_cookie_name
+      , (data)->
+        try
+          supCookie.remove profile_cookie_name
+          supCookie.remove token_cookie_name
+        catch e
+          console.error e
+        if typeof success is 'function'
+          success(data)
       , failed
 
-    get_profile: (data, success, failed)->
+    get_profile: (success, failed)->
       do_request
         url: api_member + '/profile'
         type: 'GET'
-        data: data
-      , success
+        token: supCookie.get token_cookie_name
+      , (data)->
+        try
+          supCookie.get profile_cookie_name
+        catch e
+          console.error e
+        if typeof success is 'function'
+          success(data)
       , failed
 
     update_profile: (data, success, failed)->
@@ -126,7 +163,14 @@ root.SupMember = (app_id, opts) ->
         url: api_member + '/profile'
         type: 'PUT'
         data: data
-      , success
+        token: supCookie.get token_cookie_name
+      , (data)->
+        try
+          supCookie.set profile_cookie_name
+        catch e
+          console.error e
+        if typeof success is 'function'
+          success(data)
       , failed
 
     free_apply: (data, success, failed)->
@@ -142,14 +186,15 @@ root.SupMember = (app_id, opts) ->
         url: api_member + '/applyment'
         type: 'POST'
         data: data
+        token: supCookie.get token_cookie_name
       , success
       , failed
       
-    get_apply: (data, success, failed)->
+    query_apply: (success, failed)->
       do_request
         url: api_member + '/applyment'
         type: 'GET'
-        data: data
+        token: supCookie.get token_cookie_name
       , success
       , failed
         
@@ -158,10 +203,15 @@ root.SupMember = (app_id, opts) ->
         url: api_member + '/applyment'
         type: 'DELETE'
         data: data
+        token: supCookie.get token_cookie_name
       , success
       , failed
-
-  return resources
+    
+    token: ->
+      return supCookie.get token_cookie_name
+    profile: ->
+      return supCookie.get(profile_cookie_name)
+  return member
   
   
 
@@ -176,11 +226,6 @@ ResouceNotFound = new Error('Resource Not Found.')
 
 # AJAX
 root.Ajax = ->
-  promise_methods =
-    then: ->
-    catch: ->
-    finally: ->
-
   ajax =
     get: (request) ->
       XHRConnection 'GET', request
@@ -209,8 +254,22 @@ root.Ajax = ->
       for k,v of request.headers
         xhr.setRequestHeader k, v
     
+    # listener
+    deferred = Q.defer()
+    
+    ready = (e)->
+      xhr = this
+      if xhr.readyState == xhr.DONE
+        xhr.removeEventListener 'readystatechange', ready
+        result = parse_response(xhr)
+        if xhr.status >= 200 and xhr.status < 399
+          deferred.resolve(result.data)
+        else
+          deferred.reject(result)
+    
     xhr.addEventListener 'readystatechange', ready
     
+    # send
     if type in ['GET', 'DELETE']
       xhr.send()
     else
@@ -218,24 +277,11 @@ root.Ajax = ->
         send_data = JSON.stringify(request.data)
       catch error
         throw error
+
       xhr.send(send_data)
 
-    return promises()
+    return deferred.promise
 
-
-  ready = (e)->
-    xhr = this
-    if xhr.readyState == xhr.DONE
-      xhr.removeEventListener 'readystatechange', ready
-      promise_methods.finally.apply promise_methods, parse_response(xhr)
-      if xhr.status >= 200 and xhr.status < 300
-        return promise_methods.then.apply(promise_methods,
-                                          parse_response(xhr))
-      promise_methods.catch.apply(promise_methods,
-                                  parse_response(xhr))
-    return
-
-  
   add_params = (url, params)->
     joint = if url.indexOf('?') > -1 then '&' else '?'
     if typeof params isnt 'object'
@@ -245,45 +291,40 @@ root.Ajax = ->
       joint = '&' if joint != '&'
     return url
   
-  parse_response = (xhr) ->
-    result = undefined
+  parse_response = (xhr, headers) ->
     if xhr.responseType is 'json'
-      result = xhr.response
-    else
       try
-        result = JSON.parse(xhr.responseText)
-      catch e
-        result = xhr.responseText
-        
-    return [result, xhr]
+        data = xhr.response or JSON.parse(xhr.responseText)
+      catch
+        data = xhr.responseText
+    else
+      data = xhr.responseText
 
-  promises = ->
-    all_promises = {}
-    Object.keys(promise_methods).forEach ((promise) ->
-      all_promises[promise] = generate_promise.call(this, promise)
-      return
-    ), this
-    return all_promises
-
-  generate_promise = (method) ->
-    (callback) ->
-      promise_methods[method] = callback
-      this
+    result =
+      data: data
+      headers: xhr.getAllResponseHeaders()
+      status: xhr.status
+      statusText: xhr.statusText
+      responseType: xhr.responseType
+      responseURL: xhr.responseURL
+    
+    return result
 
   return ajax
 
 # Cookie
-root.Cookie =
+supCookie =
   set: (cname, cvalue, expires, path, domain) ->
     d = new Date()
+    console.log expires
+    console.log d.toUTCString()
     d.setTime(d.getTime()+expires)
-    
+    console.log d.toUTCString()
     expires = if expires then 'expires='+d.toUTCString()+'; ' else ''
     path = if path then 'path='+path+'; ' else 'path=/; '
     domain = if domain then 'domain='+domain+'; ' else ''
+    document.cookie = cname+'='+cvalue+'; '+expires+domain+path
     
-    document.cookie = cname+'='+cvalue+'; '+expires+domian+path
-  
   get: (cname) ->
     name = cname + '='
     ca = document.cookie.split(';')
@@ -301,5 +342,4 @@ root.Cookie =
     expires='expires=Thu, 01 Jan 1970 00:00:00 UTC; '
     path = if path then 'path='+path+'; ' else 'path=/; '
     domain = if domain then 'domain='+domain+'; ' else ''
-    document.cookie = cname+'=; '+expires+domian+path
-    
+    document.cookie = cname+'=; '+expires+domain+path
