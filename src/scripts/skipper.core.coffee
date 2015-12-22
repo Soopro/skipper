@@ -68,20 +68,17 @@ root.SupMember = (app_id, opts) ->
 
     return response
   
-  # define reject invalid
-  do_reject = (msg) ->
-    deferred = Q.defer()
-    deferred.reject(msg)
-    return deferred.promise
-  
   # define api resource
   api = options.apiBaseURL
   api_open = api + '/crm/entr/' + app_id
   api_member = api + '/crm/memb/' + app_id
   
-
   member =
-    request: do_request
+    request: (request, success, failed)->
+      do_request request
+      , success
+      , failed
+
     register: (data, success, failed)->
       do_request
         url: api_open + '/register'
@@ -120,7 +117,7 @@ root.SupMember = (app_id, opts) ->
       , success
       , failed
 
-    update_pwd: (data, success, failed)->
+    change_pwd: (data, success, failed)->
       do_request
         url: api_member + '/update_pwd'
         type: 'POST'
@@ -144,73 +141,84 @@ root.SupMember = (app_id, opts) ->
           success(data)
       , failed
 
-    get_profile: (success, failed)->
-      do_request
-        url: api_member + '/profile'
-        type: 'GET'
-        token: supCookie.get token_cookie_name
-      , (data)->
-        try
-          supCookie.get profile_cookie_name
-        catch e
-          console.error e
-        if typeof success is 'function'
-          success(data)
-      , failed
+    profile:
+      get: (success, failed)->
+        profile = supCookie.get profile_cookie_name
+        if profile
+          deferred = Q.defer()
+          deferred.resolve(profile)
+          if typeof success is 'function'
+            deferred.promise.then (data)->
+              success data
+              return data
+          return deferred.promise
+        else
+          do_request
+            url: api_member + '/profile'
+            type: 'GET'
+            token: supCookie.get token_cookie_name
+          , (data)->
+            try
+              supCookie.set profile_cookie_name, data, options.expires
+            catch e
+              console.error e
+            if typeof success is 'function'
+              success(data)
+          , failed
 
-    update_profile: (data, success, failed)->
-      do_request
-        url: api_member + '/profile'
-        type: 'PUT'
-        data: data
-        token: supCookie.get token_cookie_name
-      , (data)->
-        try
-          supCookie.set profile_cookie_name
-        catch e
-          console.error e
-        if typeof success is 'function'
-          success(data)
-      , failed
+      update: (data, success, failed)->
+        do_request
+          url: api_member + '/profile'
+          type: 'PUT'
+          data: data
+          token: supCookie.get token_cookie_name
+        , (data)->
+          try
+            supCookie.set profile_cookie_name, data, options.expires
+          catch e
+            console.error e
+          if typeof success is 'function'
+            success(data)
+        , failed
 
-    free_apply: (data, success, failed)->
-      do_request
-        url: api_open + '/applyment'
-        type: 'POST'
-        data: data
-      , success
-      , failed
+    apply: 
+      free: (data, success, failed)->
+        do_request
+          url: api_open + '/applyment'
+          type: 'POST'
+          data: data
+        , success
+        , failed
 
-    make_apply: (data, success, failed)->
-      do_request
-        url: api_member + '/applyment'
-        type: 'POST'
-        data: data
-        token: supCookie.get token_cookie_name
-      , success
-      , failed
+      create: (data, success, failed)->
+        do_request
+          url: api_member + '/applyment'
+          type: 'POST'
+          data: data
+          token: supCookie.get token_cookie_name
+        , success
+        , failed
       
-    query_apply: (success, failed)->
-      do_request
-        url: api_member + '/applyment'
-        type: 'GET'
-        token: supCookie.get token_cookie_name
-      , success
-      , failed
+      query: (success, failed)->
+        do_request
+          url: api_member + '/applyment'
+          type: 'GET'
+          token: supCookie.get token_cookie_name
+        , success
+        , failed
         
-    delete_apply: (data, success, failed)->
-      do_request
-        url: api_member + '/applyment'
-        type: 'DELETE'
-        data: data
-        token: supCookie.get token_cookie_name
-      , success
-      , failed
+      remove: (data, success, failed)->
+        do_request
+          url: api_member + '/applyment'
+          type: 'DELETE'
+          data: data
+          token: supCookie.get token_cookie_name
+        , success
+        , failed
     
     token: ->
       return supCookie.get token_cookie_name
-    profile: ->
-      return supCookie.get(profile_cookie_name)
+
   return member
   
   
@@ -313,13 +321,27 @@ root.Ajax = ->
   return ajax
 
 # Cookie
+procces_cookie_output = (value)->
+  if value is 'undefined'
+    return undefined
+  if value is 'null'
+    return null
+  try
+    value = JSON.parse(value)
+  catch
+    value = value
+  return value
+
+procces_cookie_input = (value)->
+  if typeof value == 'object'
+    value = JSON.stringify(value)
+  return value
+  
 supCookie =
   set: (cname, cvalue, expires, path, domain) ->
+    cvalue = procces_cookie_input(cvalue)
     d = new Date()
-    console.log expires
-    console.log d.toUTCString()
     d.setTime(d.getTime()+expires)
-    console.log d.toUTCString()
     expires = if expires then 'expires='+d.toUTCString()+'; ' else ''
     path = if path then 'path='+path+'; ' else 'path=/; '
     domain = if domain then 'domain='+domain+'; ' else ''
@@ -334,7 +356,8 @@ supCookie =
       while c.charAt(0) == ' '
         c = c.substring(1)
       if c.indexOf(name) == 0
-        return c.substring(name.length, c.length)
+        value = c.substring(name.length, c.length)
+        return procces_cookie_output(value)
       i++
     return ''
 

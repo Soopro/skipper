@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en" data-app="5618bd3ef596b149a47b8df9">
+{% include '_head_.html' %}
+<body>
+  <form id="profile-form">
+	  <h4>Edit Profile</h4>
+  	<p>
+  		Name:
+  		<input member-name type="text" name="name">
+  	</p>
+  	<p>
+  		Email:
+  		<input member-email type="text" name="email"/>
+  	</p>
+  	<p>
+  		Photo:
+  		<input member-avatar type="text" name="avatar"/>
+  	</p>
+  	<p>
+  		Mobile:
+  		<input member-mobile type="text" name="mobile"/>
+  	</p>
+
+  	<input type="submit" id="update_profile" value="Update Profile"/>
+  </form>
+	<form id="pwd-form">
+		<h4>Update Password</h4>
+		<p>
+			Old Password:
+			<input type="password" name="opwd" title="input your new password"/>
+		</p>
+		<p>
+			New Password:
+			<input type="password" name="pwd" title="input your new password"/>
+		</p>
+		<p>
+			Confirm New Password:
+			<input type="password" name="pwd2" title="confirm your new password"/>
+		</p>
+		<input type="submit" />
+	</form>
+  <p>
+    <a href="index.html">Back</a>
+  </p>
+{% include '_js_.html' %}
+</body>
+</html>

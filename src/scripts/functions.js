@@ -25,7 +25,7 @@ $(document).ready(function() {
       window.location.href = 'login.html';
       return data;
     }).catch(function(error) {
-      console.log('failed:', error);
+      console.log('failed:', error.data);
     }).finally(function() {
       console.log('finally');
     });
@@ -41,7 +41,7 @@ $(document).ready(function() {
       window.location.href = 'index.html';
       return data;
     }).catch(function(error) {
-      console.log('failed:', error);
+      console.log('failed:', error.data);
     }).finally(function() {
       console.log('finally');
     });
@@ -59,20 +59,76 @@ $(document).ready(function() {
       console.log('success:', data);
       window.location.href = 'login.html';
     }, function(error) {
-      console.log('failed:', error);
+      console.log('failed:', error.data);
     });
     return false;
   });
 
-  if($('#profile').length > 0 && !member.profile()) {
-    member.get_profile(function(data) {
+  function show_profile(profile){
+    $('#profile').find('[member-log]').html(profile.login);
+    $('#profile').find('[member-name]').html(profile.name);
+    $('#profile').find('[member-email]').html(profile.email);
+    $('#profile').find('[member-avatar]').html(profile.avatar);
+    $('#profile').find('[member-mobile]').html(profile.mobile);
+  }
+  function show_profile_form(profile){
+    $('#profile-form').find('[name="name"]').val(profile.name);
+    $('#profile-form').find('[name="email"]').val(profile.email);
+    $('#profile-form').find('[name="avatar"]').val(profile.avatar);
+    $('#profile-form').find('[name="mobile"]').val(profile.mobile);
+  }
+  
+  if($('#profile').length > 0) {
+    member.profile.get(function(data) {
       console.log('success:', data);
-      $('#profile').find('.member-login').html(data.login);
-      $('#profile').find('.member-name').html(data.name);
+      show_profile(data);
     }, function(error) {
-      console.log('failed:', error);
+      console.log('failed:', error.data);
     });
   }
+
+  if($('#profile-form').length > 0){
+    member.profile.get(function(data) {
+      console.log('success:', data);
+      show_profile_form(data);
+    }, function(error) {
+      console.log('failed:', error.data);
+    });
+  }
+  
+  $('#profile-form').submit(function(e) {
+    member.profile.update({
+      name: $(this).find('[name="name"]').val(),
+      email: $(this).find('[name="email"]').val(),
+      avatar: $(this).find('[name="avatar"]').val(),
+      mobile: $(this).find('[name="mobile"]').val(),
+    }, function(data) {
+      console.log('success:', data);
+      show_profile(data, '#profile-form');
+    }, function(error) {
+      console.log('failed:', error.data);
+    });
+    return false;
+  });
+  
+  $('#pwd-form').submit(function(e) {
+    var pwd = $(this).find('[name="pwd"]').val()
+    var pwd2 = $(this).find('[name="pwd2"]').val()
+    if(pwd != pwd2){
+      console.log('New password not match');
+      return
+    }
+    member.change_pwd({
+      opwd: $(this).find('[name="opwd"]').val(),
+      pwd: $(this).find('[name="pwd"]').val(),
+      pwd2: $(this).find('[name="pwd2"]').val(),
+    }, function(data) {
+      console.log('success:', data);
+    }, function(error) {
+      console.log('failed:', error.data);
+    });
+    return false;
+  });
   
 });
 
