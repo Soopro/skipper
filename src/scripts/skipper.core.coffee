@@ -5,24 +5,69 @@
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
 
-token_cookie_name = 'sup_member_auth'
-profile_cookie_name = 'sup_member_profile'
+TOKEN_COOKIE_NAME = 'sup_member_auth'
+PROFILE_COOKIE_NAME = 'sup_member_profile'
+WX_COOKIE_NAME = 'sup_wx_link'
+
+WX_ALIAS = 'wx_alias'
+WX_OPEN_ID = 'wx_open_id'
+
+utils =
+  setParam: (key, value) ->
+    key = encodeURIComponent(key)
+    value = encodeURIComponent(value)
+    s = document.location.search
+    kvp = key + '=' + value
+    r = new RegExp('(&|\\?)' + key + '=[^&]*')
+    s = s.replace(r, '$1' + kvp)
+    if !RegExp.$1
+      s += (if s.length > 0 then '&' else '?') + kvp
+    document.location.search = s
+    return {key, value}
+  
+  getParam: (key) ->
+    query_args = {}
+    query = window.location.search.substring(1)
+    vars = query.split('&')
+    i = 0
+    while i < vars.length
+      pair = vars[i].split('=')
+      # If first entry with this name
+      if typeof query_args[pair[0]] == 'undefined'
+        query_args[pair[0]] = decodeURIComponent(pair[1])
+        # If second entry with this name
+      else if typeof query_args[pair[0]] == 'string'
+        arr = [
+          query_args[pair[0]]
+          decodeURIComponent(pair[1])
+        ]
+        query_args[pair[0]] = arr
+        # If third or later entry with this name
+      else
+        query_args[pair[0]].push decodeURIComponent(pair[1])
+      i++
+
+    if key
+      return query_args[key]
+    else
+      return query_args
 
 
 default_options = 
-  apiBaseURL: 'http://localhost:5000'
+  apiBaseURL: 'http://api.soopro.com'
   contentType: 'application/json'
   responseType: 'json'
   withCredentials: false
   expires: 1000*3600*24
   
-root.SupMember = (app_id, opts) ->
+root.SupMember = (opts) ->
   options = default_options
   for k,v of opts
     options[k] = v
-
-  cookie_domain = app_id
-  if not app_id
+  
+  if options.app_id
+    app_id = options.app_id
+  else
     html = document.documentElement
     app_id = (html.getAttribute('app') or html.dataset.app)
     
@@ -37,9 +82,22 @@ root.SupMember = (app_id, opts) ->
     'PUT'
   ]
   
-  ajax = new Ajax()
   
+  # process wx member link
+  wx_open_id = utils.getParam(WX_OPEN_ID)
+  wx_alias = utils.getParam(WX_ALIAS)
+  
+  if wx_open_id and wx_alias
+    wx_info =
+      alias: wx_alias
+      open_id: wx_open_id
+    try
+      supCookie.set WX_COOKIE_NAME, wx_info, options.expires
+    catch e
+      console.error e
+      
   # define request function
+  ajax = new Ajax()
   do_request = (request, success_callback, failed_callback) ->
     if typeof request.headers isnt 'object'
       request.headers = {}
@@ -58,12 +116,18 @@ root.SupMember = (app_id, opts) ->
       
     if typeof success_callback is 'function'
       response.then (data)->
-        success_callback data
+        try
+          success_callback data
+        catch e
+          console.error e
         return data
     
     if typeof failed_callback is 'function'
       response.catch (error)->
-        failed_callback error
+        try
+          failed_callback error
+        catch e
+          console.error e
         return error
 
     return response
@@ -72,13 +136,20 @@ root.SupMember = (app_id, opts) ->
   api = options.apiBaseURL
   api_open = api + '/crm/entr/' + app_id
   api_member = api + '/crm/memb/' + app_id
+  api_wx = api+'/wx'
   
   member =
     request: (request, success, failed)->
       do_request request
       , success
       , failed
-
+    check: (data, success, failed)->
+      do_request
+        url: api_open + '/check'
+        type: 'POST'
+        data: data
+      , success
+      , failed
     register: (data, success, failed)->
       do_request
         url: api_open + '/register'
@@ -102,7 +173,7 @@ root.SupMember = (app_id, opts) ->
         data: data
       , (data)->
         try
-          supCookie.set token_cookie_name, data.token, options.expires
+          supCookie.set TOKEN_COOKIE_NAME, data.token, options.expires
         catch e
           console.error e
         if typeof success is 'function'
@@ -122,7 +193,7 @@ root.SupMember = (app_id, opts) ->
         url: api_member + '/update_pwd'
         type: 'POST'
         data: data
-        token: supCookie.get token_cookie_name
+        token: supCookie.get TOKEN_COOKIE_NAME
       , success
       , failed
       
@@ -130,20 +201,31 @@ root.SupMember = (app_id, opts) ->
       do_request
         url: api_member + '/logout'
         type: 'GET'
-        token: supCookie.get token_cookie_name
+        token: supCookie.get TOKEN_COOKIE_NAME
       , (data)->
         try
-          supCookie.remove profile_cookie_name
-          supCookie.remove token_cookie_name
+          supCookie.remove PROFILE_COOKIE_NAME
+          supCookie.remove TOKEN_COOKIE_NAME
+          supCookie.remove WX_COOKIE_NAME
         catch e
           console.error e
         if typeof success is 'function'
           success(data)
-      , failed
+      , (error)->
+        if error.status == 401
+          try
+            supCookie.remove PROFILE_COOKIE_NAME
+            supCookie.remove TOKEN_COOKIE_NAME
+            supCookie.remove WX_COOKIE_NAME
+          catch e
+            console.error e
+        if typeof failed is 'function'
+          failed(data)
+        
 
     profile:
       get: (success, failed)->
-        profile = supCookie.get profile_cookie_name
+        profile = supCookie.get PROFILE_COOKIE_NAME
         if profile
           deferred = Q.defer()
           deferred.resolve(profile)
@@ -156,10 +238,10 @@ root.SupMember = (app_id, opts) ->
           do_request
             url: api_member + '/profile'
             type: 'GET'
-            token: supCookie.get token_cookie_name
+            token: supCookie.get TOKEN_COOKIE_NAME
           , (data)->
             try
-              supCookie.set profile_cookie_name, data, options.expires
+              supCookie.set PROFILE_COOKIE_NAME, data, options.expires
             catch e
               console.error e
             if typeof success is 'function'
@@ -171,10 +253,10 @@ root.SupMember = (app_id, opts) ->
           url: api_member + '/profile'
           type: 'PUT'
           data: data
-          token: supCookie.get token_cookie_name
+          token: supCookie.get TOKEN_COOKIE_NAME
         , (data)->
           try
-            supCookie.set profile_cookie_name, data, options.expires
+            supCookie.set PROFILE_COOKIE_NAME, data, options.expires
           catch e
             console.error e
           if typeof success is 'function'
@@ -187,9 +269,9 @@ root.SupMember = (app_id, opts) ->
           type: 'GET'
         , success
         , failed
-      get: (alias, success, failed)->
+      get: (key, success, failed)->
         do_request
-          url: api_open + '/activity/' + alias
+          url: api_open + '/activity/' + key
           type: 'GET'
         , success
         , failed
@@ -206,7 +288,7 @@ root.SupMember = (app_id, opts) ->
         do_request
           url: api_member + '/applyment'
           type: 'GET'
-          token: supCookie.get token_cookie_name
+          token: supCookie.get TOKEN_COOKIE_NAME
         , success
         , failed
       
@@ -215,25 +297,42 @@ root.SupMember = (app_id, opts) ->
           url: api_member + '/applyment'
           type: 'POST'
           data: data
-          token: supCookie.get token_cookie_name
+          token: supCookie.get TOKEN_COOKIE_NAME
         , success
         , failed
       
-      remove: (data, success, failed)->
+      remove: (key, success, failed)->
         do_request
-          url: api_member + '/applyment'
+          url: api_member + '/applyment/' + key
           type: 'DELETE'
-          data: data
-          token: supCookie.get token_cookie_name
+          token: supCookie.get TOKEN_COOKIE_NAME
         , success
         , failed
     
-    token: ->
-      return supCookie.get token_cookie_name
+    wxlink: (success, failed)->
+      wx_info = supCookie.get WX_COOKIE_NAME
+      if not wx_info.alias or not wx_info.open_id
+        deferred = Q.defer()
+        deferred.reject
+          data: 'No WeChat link.'
+        if typeof failed is 'function'
+          deferred.promise.catch (error)->
+            failed error
+            return error
+        return deferred.promise
+      else
+        do_request
+          url: api_wx + '/' + wx_info.alias + '/link'
+          type: 'POST'
+          data: wx_info
+          token: supCookie.get TOKEN_COOKIE_NAME
 
+    token: ->
+      return supCookie.get TOKEN_COOKIE_NAME
+      
+    utils: utils
+    
   return member
-  
-  
 
 
 # Errors
@@ -245,7 +344,7 @@ ResouceNotFound = new Error('Resource Not Found.')
 
 
 # AJAX
-root.Ajax = ->
+Ajax = ->
   ajax =
     get: (request) ->
       XHRConnection 'GET', request

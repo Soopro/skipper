@@ -2,42 +2,59 @@
 <html lang="en" data-app="5618bd3ef596b149a47b8df9">
 {% include '_head_.html' %}
 <body>
-  <form id="register-form">
-    Register:
-    <p id="seccesed" style="display: none;">Logup seccessed!</p>
-    <p id="false" style="display: none;">Logup failed!</p>
-    <p id="same" style="display: none;">Password is wrong!</p>
-    <p>
+  <form id="register-check-form">
+    <h4 id="main-title">Check Register</h4>
+    <p id="log">
       Login:
       <input type="text" name="log" title="input login name"/>
     </p>
-    <p>
+    <input type="submit" value="check register"/>
+  </form>
+  <form id="register-join-form" style="display:none;">
+    <h4 id="main-title">You Already have account, Join now!</h4>
+    <p id="log">
+      Login:
+      <input type="text" name="log" title="input login name"/>
+    </p>
+    <input type="submit" value="join"/>
+  </form>
+  <form id="register-new-form" style="display:none;">
+    <h4 id="main-title">Register</h4>
+    <p id="log">
+      Login:
+      <input type="text" name="log" title="input login name"/>
+    </p>
+    <p id="pwd">
       Password:
       <input type="text" name="pwd" title="input password"/>
     </p>
-    <p>
+    <p id="pwd2">
       Confirm Password:
       <input type="text" name="pwd2" title="input password again"/>
     </p>
-    <p>
+    <p id="name">
       Name:
       <input type="text" name="name" title="input your name"/>
     </p>
-    <p>
+    <p id="email">
       Email:
       <input type="email" name="email" title="input email address"/>
     </p>
-    <p>
+    <p id="avatar">
       Photo:
-      <input type="text" name="photo" title="input photo"/>
+      <input type="text" name="avatar" title="input photo"/>
     </p>
-    <p>
+    <p id="mobile">
       Mobile:
       <input type="text" name="mobile" title="input phone number"/>
     </p>
     <input type="submit" value="register" id="register"/>
-    <a href="login.html" style="display: none;" id="goin">login</a>
   </form>
+  <div id="register-already-member" style="display:none;">
+    <h4 id="main-title">You Already a member!!</h4>
+  </div>
+  <p><a href="login.html">Login</a></p>
+  <p><a href="free_apply.html">Free Apply</a></p>
 {% include '_js_.html' %}
 </body>
 </html>

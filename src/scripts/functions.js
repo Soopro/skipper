@@ -4,11 +4,12 @@ outer_path = [
   'register.html',
   'create_applyment.html',
   'recover_pwd.html',
+  'free_apply.html'
 ]
 
 
 $(document).ready(function() {
-  var member = new SupMember();
+  var member = new SupMember({apiBaseURL:'http://localhost:5000'});
 
   current_path = location.pathname.substr(1)
   
@@ -35,11 +36,10 @@ $(document).ready(function() {
   });
   
   // Login
-  
   $('#login-form').submit(function(e) {
     member.login({
-      log: $(this).find('[name="LoginName"]').val(),
-      pwd: $(this).find('[name="LoginPwd"]').val()
+      log: $(this).find('[name="log"]').val(),
+      pwd: $(this).find('[name="pwd"]').val()
     }).then(function(data) {
       console.log('success:', data);
       window.location.href = 'index.html';
@@ -54,20 +54,63 @@ $(document).ready(function() {
   
   
   // Register
+  $('#register-check-form').submit(function(e){
+    var log = $(this).find('[name="log"]').val();
+    member.check({
+      log: log
+    }).then(function(data){
+      console.log('success:', data);
+      if(!data.exists){
+        $('#register-new-form').show();
+        $('#register-new-form').find('[name="log"]').val(log);
+      }else if(!data.belong){
+        $('#register-join-form').show();
+        $('#register-join-form').find('[name="log"]').val(log);
+      }else{
+        $('#register-already-member').show();
+      }
+      $('#register-check-form').hide();
+      return data
+    }).catch(function(error){
+      console.log('failed:', error.data);
+    });
+    return false;
+  });
   
-  $('#register-form').submit(function(e) {
+  $('#register-join-form').submit(function(e){
+    var log = $(this).find('[name="log"]').val();
+    member.join({
+      log: log,
+    }).then(function(data){
+      console.log('success:', data);
+      console.log('Join!!!')
+      timer = setTimeout(function(){
+        window.location.href = 'login.html';
+        clearTimeout(timer);
+      }, 1000);
+      return data;
+    }).catch(function(error){
+      console.log('failed:', error.data);
+    });
+    return false;
+  });
+  
+  $('#register-new-form').submit(function(e) {
     member.register({
       log: $(this).find('[name="log"]').val(),
       pwd: $(this).find('[name="pwd"]').val(),
       pwd2: $(this).find('[name="pwd2"]').val(),
       name: $(this).find('[name="name"]').val(),
-      email: $(this).find('[name="email"]').val()
+      email: $(this).find('[name="email"]').val(),
+      mobile: $(this).find('[name="mobile"]').val(),
+      avatar: $(this).find('[name="avatar"]').val()
     }, function(data) {
       console.log('success:', data);
       window.location.href = 'login.html';
     }, function(error) {
       console.log('failed:', error.data);
     });
+    
     return false;
   });
 
@@ -139,15 +182,34 @@ $(document).ready(function() {
     return false;
   });
   // Activity
-  if($('#activity-list').length > 0){
+  if($('#activities').length > 0){
     member.activity.query(function(data) {
       console.log('success:', data);
+      for(var i=0; i<data.length; i++){
+        var act = data[i];
+        $('#activities').append(
+          [
+           '<p>',
+           'Alias: '+act.alias+'<br>',
+           'Title: '+act.title+'<br>',
+           'Time: '+act.time+'<br>',
+           'Location: '+act.location+'<br>',
+           'Member Verify: '+(act.permit==1)+'<br>',
+           'Update: '+new Date(act.updated*1000)+'<br>',
+           '</p>',
+           '<a href="apply.html?act_id='+act.id+'">Apply</a>',
+           '<hr>'
+          ].join('')
+        )
+      }
     }, function(error) {
       console.log('failed:', error.data);
     });
   }
+  
   if($('#activity').length > 0){
-    member.activity.get('test'
+    alias = $('#activity').attr('alias') || $('#activity').data('alias');
+    member.activity.get(alias
     , function(data) {
       console.log('success:', data);
     }, function(error) {
@@ -156,12 +218,55 @@ $(document).ready(function() {
   }
   
   // Applayment
-  function show_applyments(applyments) {
-    for(var i=0; i<applyments.length; i++){
-      var apply = appylments[i];
-      console.log(apply);
-    }
+  function add_apply(apply){
+    $('#applyments').prepend(
+      [
+       '<div id='+apply.id+'>',
+       '<p>',
+       'Name: '+apply.name+'<br>',
+       'Message: '+apply.message+'<br>',
+       'member: '+Boolean(apply.member_id)+'<br>',
+       'Update: '+new Date(apply.updated*1000)+'<br>',
+       '</p>',
+       '<button name="cancel_apply" apply-id="'+apply.id+'">Cancel</button>',
+       '<hr>',
+       '<div>'
+      ].join('')
+    )
   }
+  function show_applyments(applyments) {
+    $('#applyments').html('');
+    act_id = member.utils.getParam('act_id');
+    for(var i=0; i<applyments.length; i++){
+      var apply = applyments[i];
+      if(act_id && apply.activity_id != act_id){
+        continue
+      }
+      if(apply.canceled){
+        continue
+      }
+      add_apply(apply);
+    }
+    
+    $('button[name="cancel_apply"]').click(function(e){
+      var apply_id = $(this).attr('apply-id') || $(this).data('apply-id');
+      if(apply_id){
+        member.apply.remove(apply_id
+        , function(data) {
+          console.log('success:', data);
+          $('#applyments').children().each(function(e){
+            if($(this).attr('id') == apply_id){
+              $(this).remove()
+            }
+          });
+        }, function(error) {
+          console.log('failed:', error.data);
+        });
+      }
+      
+    });
+  }
+
 
   if($('#applyments').length > 0){
     member.apply.query(function(data) {
@@ -170,6 +275,11 @@ $(document).ready(function() {
     }, function(error) {
       console.log('failed:', error.data);
     });
+  }
+  
+  if($('#create-apply-form').length > 0){
+    act_id = member.utils.getParam('act_id');
+    $(this).find('[name="act_id"]').val(act_id);
   }
   
   $('#create-apply-form').submit(function(e) {
@@ -181,12 +291,28 @@ $(document).ready(function() {
       create_func = member.apply.create
     }
     create_func({
-      name: '123',
-      activity_alias: 'test',
-      message: '........',
+      name: $(this).find('[name="name"]').val(),
+      activity_id: $(this).find('[name="act_id"]').val(),
+      message: $(this).find('[name="message"]').val(),
       meta: {}
     }, function(data) {
       console.log('success:', data);
+      add_apply(data);
+    }, function(error) {
+      console.log('failed:', error.data);
+    });
+    return false;
+  });
+  
+  $('#create-free-apply-form').submit(function(e) {
+    member.apply.free({
+      name: $(this).find('[name="name"]').val(),
+      activity_alias: $(this).find('[name="activity"]').val(),
+      message: $(this).find('[name="message"]').val(),
+      meta: {}
+    }, function(data) {
+      console.log('success:', data);
+      add_apply(data);
     }, function(error) {
       console.log('failed:', error.data);
     });
