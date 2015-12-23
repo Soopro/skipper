@@ -18,6 +18,8 @@ $(document).ready(function() {
     window.location.href = 'index.html';
   }
   
+  // Logout
+  
   $('#logout').click(function(e) {
     member.logout()
     .then(function(data) {
@@ -31,6 +33,8 @@ $(document).ready(function() {
     });
     return false;
   });
+  
+  // Login
   
   $('#login-form').submit(function(e) {
     member.login({
@@ -48,6 +52,9 @@ $(document).ready(function() {
     return false;
   });
   
+  
+  // Register
+  
   $('#register-form').submit(function(e) {
     member.register({
       log: $(this).find('[name="log"]').val(),
@@ -64,6 +71,8 @@ $(document).ready(function() {
     return false;
   });
 
+  // Profile
+
   function show_profile(profile){
     $('#profile').find('[member-log]').html(profile.login);
     $('#profile').find('[member-name]').html(profile.name);
@@ -77,7 +86,7 @@ $(document).ready(function() {
     $('#profile-form').find('[name="avatar"]').val(profile.avatar);
     $('#profile-form').find('[name="mobile"]').val(profile.mobile);
   }
-  
+
   if($('#profile').length > 0) {
     member.profile.get(function(data) {
       console.log('success:', data);
@@ -95,7 +104,7 @@ $(document).ready(function() {
       console.log('failed:', error.data);
     });
   }
-  
+
   $('#profile-form').submit(function(e) {
     member.profile.update({
       name: $(this).find('[name="name"]').val(),
@@ -110,7 +119,7 @@ $(document).ready(function() {
     });
     return false;
   });
-  
+
   $('#pwd-form').submit(function(e) {
     var pwd = $(this).find('[name="pwd"]').val()
     var pwd2 = $(this).find('[name="pwd2"]').val()
@@ -122,6 +131,60 @@ $(document).ready(function() {
       opwd: $(this).find('[name="opwd"]').val(),
       pwd: $(this).find('[name="pwd"]').val(),
       pwd2: $(this).find('[name="pwd2"]').val(),
+    }, function(data) {
+      console.log('success:', data);
+    }, function(error) {
+      console.log('failed:', error.data);
+    });
+    return false;
+  });
+  // Activity
+  if($('#activity-list').length > 0){
+    member.activity.query(function(data) {
+      console.log('success:', data);
+    }, function(error) {
+      console.log('failed:', error.data);
+    });
+  }
+  if($('#activity').length > 0){
+    member.activity.get('test'
+    , function(data) {
+      console.log('success:', data);
+    }, function(error) {
+      console.log('failed:', error.data);
+    });
+  }
+  
+  // Applayment
+  function show_applyments(applyments) {
+    for(var i=0; i<applyments.length; i++){
+      var apply = appylments[i];
+      console.log(apply);
+    }
+  }
+
+  if($('#applyments').length > 0){
+    member.apply.query(function(data) {
+      console.log('success:', data);
+      show_applyments(data);
+    }, function(error) {
+      console.log('failed:', error.data);
+    });
+  }
+  
+  $('#create-apply-form').submit(function(e) {
+    var free_mode = $(this).find('[name="free"]:checked').val();
+    var create_func;
+    if(free_mode == 1){
+      create_func = member.apply.free
+    }else{
+      create_func = member.apply.create
+    }
+    create_func({
+      name: '123',
+      activity_alias: 'test',
+      message: '........',
+      meta: {}
     }, function(data) {
       console.log('success:', data);
     }, function(error) {

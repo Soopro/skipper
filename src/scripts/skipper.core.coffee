@@ -180,22 +180,25 @@ root.SupMember = (app_id, opts) ->
           if typeof success is 'function'
             success(data)
         , failed
-
+    activity:
+      query: (success, failed)->
+        do_request
+          url: api_open + '/activity'
+          type: 'GET'
+        , success
+        , failed
+      get: (alias, success, failed)->
+        do_request
+          url: api_open + '/activity/' + alias
+          type: 'GET'
+        , success
+        , failed
     apply: 
       free: (data, success, failed)->
         do_request
           url: api_open + '/applyment'
           type: 'POST'
           data: data
-        , success
-        , failed
-
-      create: (data, success, failed)->
-        do_request
-          url: api_member + '/applyment'
-          type: 'POST'
-          data: data
-          token: supCookie.get token_cookie_name
         , success
         , failed
       
@@ -206,7 +209,16 @@ root.SupMember = (app_id, opts) ->
           token: supCookie.get token_cookie_name
         , success
         , failed
-        
+      
+      create: (data, success, failed)->
+        do_request
+          url: api_member + '/applyment'
+          type: 'POST'
+          data: data
+          token: supCookie.get token_cookie_name
+        , success
+        , failed
+      
       remove: (data, success, failed)->
         do_request
           url: api_member + '/applyment'

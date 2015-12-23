@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en" data-app="5618bd3ef596b149a47b8df9">
+{% include '_head_.html' %}
+<body>
+  <div id="activity-list"></div>
+  <div id="activity"></div>
+  
+  <div id="applyments">
+    
+  </div>
+  
+  <form id="create-apply-form">
+    <h4>Create apply</h4>
+    <p>
+      <input type="radio" name="free" id="radio_free" value="1" checked/>
+        <label for="radio_free">Free</label>
+      <input type="radio" name="free" id="radio_member" value="0" />
+        <label for="radio_member">Member</label>
+    </p>
+    <p>
+    	Name:
+    	<input type="text" name="name" title="input your name">
+    </p>
+    <p>
+    	Activity ID:
+    	<input type="text" name="act_id" title="input your activity id"/>
+    </p>
+    <p>
+    	Message
+    	<input type="text" name="message" title="input your message"/>
+    </p>
+    <input type="submit" value="make applyment"/>
+  </form>
+  <p>
+    <a href="index.html">Back</a>
+  </p>
+{% include '_js_.html' %}
+</body>
+</html>
