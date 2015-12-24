@@ -424,11 +424,12 @@ Ajax = ->
   
   parse_response = (xhr, headers) ->
     if xhr.responseType is 'json'
-      try
-        data = xhr.response or JSON.parse(xhr.responseText)
-      catch
-        data = xhr.responseText
-    else
+      data = xhr.response
+    else if xhr.responseType in ['blob', 'arraybuffer']
+      data = xhr.response
+    else if xhr.responseType is 'document'
+      data = xhr.responseXML
+    else if xhr.responseType in ['', 'text']
       data = xhr.responseText
 
     result =

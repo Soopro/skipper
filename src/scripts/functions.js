@@ -183,38 +183,48 @@ $(document).ready(function() {
   });
   
   // Recovery
-  var resetpwd_url = 'http://localhost:9000/resetpwd'
+  var resetpwd_url = 'http://localhost:9000/recovery.html'
   var email_template = '<p>Hello {{meta.name or meta.login}}, <br>'+
                        'Click the link below to reset your password.<p>'+
-                       '<a href="'+resetpwd_url+'?{{meta.sid}}">'+
-                       'http://localhost:9000/resetpwd?{{meta.sid}}'
+                       '<a href="'+resetpwd_url+'?sid={{meta.sid}}">'+
+                       ''+resetpwd_url+'?sid={{meta.sid}}'+
                        '</a>'
   var sid = member.utils.getParam('sid');
-  $('#recovery-form').submit(function(e) {
-    member.pwd.recovery({
-      log: $(this).find('[name="log"]').val(),
-      subject: 'Recovery Password',
-      template: email_template
-    }, function(data) {
-      console.log('success:', data);
-    }, function(error) {
-      console.log('failed:', error.data);
+  if(!sid){
+    $('#recovery-form').show();
+    $('#recovery-form').submit(function(e) {
+      member.pwd.recovery({
+        log: $(this).find('[name="log"]').val(),
+        subject: 'Recovery Password',
+        template: email_template
+      }, function(data) {
+        console.log('success:', data);
+        $('#msgbox').html('<h2>Recovery Email is send to your mail box</h2>')
+      }, function(error) {
+        console.log('failed:', error.data);
+      });
+      return false;
     });
-    return false;
-  });
+  }else{
+    $('#resetpwd-form').show();
+    $('#resetpwd-form').submit(function(e) {
+      member.pwd.reset({
+        sid: sid,
+        pwd: $(this).find('[name="pwd"]').val(),
+        pwd2: $(this).find('[name="pwd2"]').val(),
+      }, function(data) {
+        $('#msgbox').html('<h2>Password reseted.</h2>')
+        console.log('success:', data);
+      }, function(error) {
+        $('#msgbox').html('<h2>'+error.data.errmsg+'</h2>')
+        console.log('failed:', error.data);
+      });
+      return false;
+    });
+  }
   
-  $('#resetpwd-form').submit(function(e) {
-    member.pwd.recovery({
-      log: $(this).find('[name="log"]').val(),
-      subject: 'Recovery Password',
-      template: email_template
-    }, function(data) {
-      console.log('success:', data);
-    }, function(error) {
-      console.log('failed:', error.data);
-    });
-    return false;
-  });
+  
+  
   
   // Activity
   if($('#activities').length > 0){
