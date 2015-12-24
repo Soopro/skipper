@@ -19,6 +19,15 @@ $(document).ready(function() {
     window.location.href = 'index.html';
   }
   
+  // wxlink
+  if(member.token){
+    member.wxlink(function(data){
+      console.log(data);
+    }, function(error){
+      console.log(error.data);
+    });
+  }
+  
   // Logout
   
   $('#logout').click(function(e) {
@@ -222,9 +231,6 @@ $(document).ready(function() {
       return false;
     });
   }
-  
-  
-  
   
   // Activity
   if($('#activities').length > 0){

@@ -9,7 +9,7 @@ TOKEN_COOKIE_NAME = 'sup_member_auth'
 PROFILE_COOKIE_NAME = 'sup_member_profile'
 WX_COOKIE_NAME = 'sup_wx_link'
 
-WX_ALIAS = 'wx_alias'
+WX_PAIR = 'wx_pair'
 WX_OPEN_ID = 'wx_open_id'
 
 utils =
@@ -85,16 +85,20 @@ root.SupMember = (opts) ->
   
   # process wx member link
   wx_open_id = utils.getParam(WX_OPEN_ID)
-  wx_alias = utils.getParam(WX_ALIAS)
+  wx_pair = utils.getParam(WX_PAIR)
   
-  if wx_open_id and wx_alias
+  if wx_open_id and wx_pair
     wx_info =
-      alias: wx_alias
+      pair: wx_pair
       open_id: wx_open_id
     try
       supCookie.set WX_COOKIE_NAME, wx_info, options.expires
     catch e
       console.error e
+  else
+    wx_info = supCookie.get WX_COOKIE_NAME
+    wx_pair = wx_info.pair
+    wx_open_id = wx_info.open_id
       
   # define request function
   ajax = new Ajax()
@@ -136,7 +140,7 @@ root.SupMember = (opts) ->
   api = options.apiBaseURL
   api_open = api + '/crm/entr/' + app_id
   api_member = api + '/crm/memb/' + app_id
-  api_wx = api+'/wx'
+  api_wx_link = api+'/wx/link/' + wx_pair
   
   member =
     request: (request, success, failed)->
@@ -274,6 +278,7 @@ root.SupMember = (opts) ->
           if typeof success is 'function'
             success(data)
         , failed
+
     activity:
       query: (success, failed)->
         do_request
@@ -287,6 +292,7 @@ root.SupMember = (opts) ->
           type: 'GET'
         , success
         , failed
+
     apply: 
       free: (data, success, failed)->
         do_request
@@ -323,7 +329,7 @@ root.SupMember = (opts) ->
     
     wxlink: (success, failed)->
       wx_info = supCookie.get WX_COOKIE_NAME
-      if not wx_info.alias or not wx_info.open_id
+      if not wx_info.pair or not wx_info.open_id
         deferred = Q.defer()
         deferred.reject
           data: 'No WeChat link.'
@@ -334,10 +340,12 @@ root.SupMember = (opts) ->
         return deferred.promise
       else
         do_request
-          url: api_wx + '/' + wx_info.alias + '/link'
+          url: api_wx_link
           type: 'POST'
           data: wx_info
           token: supCookie.get TOKEN_COOKIE_NAME
+        , success
+        , failed
 
     token: ->
       return supCookie.get TOKEN_COOKIE_NAME
@@ -413,14 +421,26 @@ Ajax = ->
 
     return deferred.promise
 
+
   add_params = (url, params)->
-    joint = if url.indexOf('?') > -1 then '&' else '?'
     if typeof params isnt 'object'
       return url
+    _add = (url, key, value)->
+      joint = if url.indexOf('?') > -1 then '&' else '?'
+      key = encodeURIComponent(key)
+      value = encodeURIComponent(value)
+      url = url+joint+key+'='+value
+      return url
+
     for k, v of params
-      url = url+joint+k+'='+v
-      joint = '&' if joint != '&'
+      if typeof v is 'object' and typeof v.length is 'number'
+        for item in v
+          url = _add(url, k, item)
+      else  
+        url = _add(url, k, v)
+
     return url
+
   
   parse_response = (xhr, headers) ->
     if xhr.responseType is 'json'
