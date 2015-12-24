@@ -143,28 +143,6 @@ root.SupMember = (opts) ->
       do_request request
       , success
       , failed
-    check: (data, success, failed)->
-      do_request
-        url: api_open + '/check'
-        type: 'POST'
-        data: data
-      , success
-      , failed
-    register: (data, success, failed)->
-      do_request
-        url: api_open + '/register'
-        type: 'POST'
-        data: data
-      , success
-      , failed
-      
-    join: (data, success, failed)->
-      do_request
-        url: api_open + '/join'
-        type: 'POST'
-        data: data
-      , success
-      , failed
 
     login: (data, success, failed)->
       do_request
@@ -179,24 +157,7 @@ root.SupMember = (opts) ->
         if typeof success is 'function'
           success(data)
       , failed
-      
-    recover_pwd: (data, success, failed)->
-      do_request
-        url: api_open + '/recover_pwd'
-        type: 'POST'
-        data: data
-      , success
-      , failed
-
-    change_pwd: (data, success, failed)->
-      do_request
-        url: api_member + '/update_pwd'
-        type: 'POST'
-        data: data
-        token: supCookie.get TOKEN_COOKIE_NAME
-      , success
-      , failed
-      
+    
     logout: (success, failed)->
       do_request
         url: api_member + '/logout'
@@ -221,7 +182,58 @@ root.SupMember = (opts) ->
             console.error e
         if typeof failed is 'function'
           failed(data)
-        
+
+    register:
+      check: (data, success, failed)->
+        do_request
+          url: api_open + '/check'
+          type: 'POST'
+          data: data
+        , success
+        , failed
+
+      newer: (data, success, failed)->
+        do_request
+          url: api_open + '/register'
+          type: 'POST'
+          data: data
+        , success
+        , failed
+      
+      join: (data, success, failed)->
+        do_request
+          url: api_open + '/join'
+          type: 'POST'
+          data: data
+        , success
+        , failed
+    
+    pwd:
+      recovery: (data, success, failed)->
+        do_request
+          url: api_open + '/recover_pwd'
+          type: 'POST'
+          data: data
+        , success
+        , failed
+    
+      reset: (data, success, failed)->
+        do_request
+          url: api_open + '/reset_pwd'
+          type: 'POST'
+          data: data
+        , success
+        , failed
+    
+      update: (data, success, failed)->
+        do_request
+          url: api_member + '/update_pwd'
+          type: 'POST'
+          data: data
+          token: supCookie.get TOKEN_COOKIE_NAME
+        , success
+        , failed
+
 
     profile:
       get: (success, failed)->
