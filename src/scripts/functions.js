@@ -19,15 +19,6 @@ $(document).ready(function() {
     window.location.href = 'index.html';
   }
   
-  // wxlink
-  if(member.token){
-    member.wxlink(function(data){
-      console.log(data);
-    }, function(error){
-      console.log(error.data);
-    });
-  }
-  
   // Logout
   
   $('#logout').click(function(e) {
@@ -76,12 +67,13 @@ $(document).ready(function() {
         $('#register-join-form').show();
         $('#register-join-form').find('[name="log"]').val(log);
       }else{
-        $('#register-already-member').show();
+        $('#msgbox').html('You are already a member!');
       }
       $('#register-check-form').hide();
       return data
     }).catch(function(error){
       console.log('failed:', error.data);
+      $('#msgbox').html(error.data.errmsg);
     });
     return false;
   });
@@ -93,13 +85,11 @@ $(document).ready(function() {
     }).then(function(data){
       console.log('success:', data);
       console.log('Join!!!')
-      timer = setTimeout(function(){
-        window.location.href = 'login.html';
-        clearTimeout(timer);
-      }, 1000);
+      $('#msgbox').html('You are joined! Go Login');
       return data;
     }).catch(function(error){
       console.log('failed:', error.data);
+      $('#msgbox').html(error.data.errmsg);
     });
     return false;
   });
@@ -115,9 +105,10 @@ $(document).ready(function() {
       avatar: $(this).find('[name="avatar"]').val()
     }, function(data) {
       console.log('success:', data);
-      window.location.href = 'login.html';
+      $('#msgbox').html('You are registered! Go Login');
     }, function(error) {
       console.log('failed:', error.data);
+      $('#msgbox').html(error.data.errmsg);
     });
     
     return false;
@@ -208,7 +199,7 @@ $(document).ready(function() {
         template: email_template
       }, function(data) {
         console.log('success:', data);
-        $('#msgbox').html('<h2>Recovery Email is send to your mail box</h2>')
+        $('#msgbox').html('Recovery Email is send to your mail box.')
       }, function(error) {
         console.log('failed:', error.data);
       });
@@ -222,10 +213,10 @@ $(document).ready(function() {
         pwd: $(this).find('[name="pwd"]').val(),
         pwd2: $(this).find('[name="pwd2"]').val(),
       }, function(data) {
-        $('#msgbox').html('<h2>Password reseted.</h2>')
+        $('#msgbox').html('Password reseted.')
         console.log('success:', data);
       }, function(error) {
-        $('#msgbox').html('<h2>'+error.data.errmsg+'</h2>')
+        $('#msgbox').html(error.data.errmsg)
         console.log('failed:', error.data);
       });
       return false;
@@ -370,6 +361,48 @@ $(document).ready(function() {
     return false;
   });
   
+  // wxlink
+  if(member.token() && member.wxlink.open_sid()){
+    member.wxlink.get(function(data){
+      if(data.token){
+        $('#wx-unlink-btn').show();
+      }else{
+        $('#wx-link-btn').show();
+      }
+    }, function(error){
+      console.log(error.data);
+    });
+  }
+  $('#wx-link-btn').click(function(e){
+    member.wxlink.link(function(data){
+      console.log(data);
+      $('#wx-unlink-btn').show();
+      $('#wx-link-btn').hide();
+    }, function(error){
+      console.log(error.data);
+    });
+  });
+  $('#wx-unlink-btn').click(function(e){
+    member.wxlink.unlink(function(data){
+      console.log(data);
+      $('#wx-unlink-btn').hide();
+      $('#wx-link-btn').show();
+    }, function(error){
+      console.log(error.data);
+    });
+  });
+  
+  if(!member.token() && member.wxlink.open_sid()){
+    console.log('Try use WX open id to login')
+    member.wxlink.login(function(data){
+      console.log(data);
+      if(member.token()){
+        window.location.href = 'index.html';
+      }
+    }, function(error){
+      console.log(error.data);
+    });
+  };
 });
 
 // ---
