@@ -61,7 +61,7 @@
           "scripts/libs/q.js",
           "scripts/skipper.core.js"
         ],
-        "output": "scripts/skipper.min.js"
+        "output": "scripts/libs/skipper.min.js"
       }
     }
   }
