@@ -25,6 +25,25 @@ utils =
     document.location.search = s
     return {key, value}
   
+  addParam: (url, params)->
+    if typeof params isnt 'object'
+      return url
+    _add = (url, key, value)->
+      joint = if url.indexOf('?') > -1 then '&' else '?'
+      key = encodeURIComponent(key)
+      value = encodeURIComponent(value)
+      url = url+joint+key+'='+value
+      return url
+
+    for k, v of params
+      if typeof v is 'object' and typeof v.length is 'number'
+        for item in v
+          url = _add(url, k, item)
+      else  
+        url = _add(url, k, v)
+
+    return url
+  
   getParam: (key) ->
     query_args = {}
     query = window.location.search.substring(1)
@@ -440,7 +459,7 @@ Ajax = ->
 
   XHRConnection = (type, request) ->
     xhr = new XMLHttpRequest()
-    url = add_params(request.url, request.params)
+    url = addParam(request.url, request.params)
 
     xhr.open type, url or '', true
 
@@ -480,26 +499,6 @@ Ajax = ->
       xhr.send(send_data)
 
     return deferred.promise
-
-
-  add_params = (url, params)->
-    if typeof params isnt 'object'
-      return url
-    _add = (url, key, value)->
-      joint = if url.indexOf('?') > -1 then '&' else '?'
-      key = encodeURIComponent(key)
-      value = encodeURIComponent(value)
-      url = url+joint+key+'='+value
-      return url
-
-    for k, v of params
-      if typeof v is 'object' and typeof v.length is 'number'
-        for item in v
-          url = _add(url, k, item)
-      else  
-        url = _add(url, k, v)
-
-    return url
 
   
   parse_response = (xhr, headers) ->
