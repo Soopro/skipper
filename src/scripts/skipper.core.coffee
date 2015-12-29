@@ -459,7 +459,7 @@ Ajax = ->
 
   XHRConnection = (type, request) ->
     xhr = new XMLHttpRequest()
-    url = addParam(request.url, request.params)
+    url = utils.addParam(request.url, request.params)
 
     xhr.open type, url or '', true
 
