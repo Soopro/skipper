@@ -12,6 +12,8 @@ WX_LINK_COOKIE_NAME = 'sup_wx_link'
 
 WX_OPEN_SID = 'wx_open_sid'
 
+Q = root.Q.noConflict()
+
 utils =
   setParam: (key, value) ->
     key = encodeURIComponent(key)
