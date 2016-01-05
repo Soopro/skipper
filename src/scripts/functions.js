@@ -231,16 +231,16 @@ $(document).ready(function() {
         var act = data[i];
         $('#activities').append(
           [
-           '<p>',
-           'Alias: '+act.alias+'<br>',
-           'Title: '+act.title+'<br>',
-           'Time: '+act.time+'<br>',
-           'Location: '+act.location+'<br>',
-           'Member Verify: '+(act.permit==1)+'<br>',
-           'Update: '+new Date(act.updated*1000)+'<br>',
-           '</p>',
-           '<a href="apply.html?act_id='+act.id+'">Apply</a>',
-           '<hr>'
+            '<p>',
+            'Alias: '+act.alias+'<br>',
+            'Title: '+act.title+'<br>',
+            'Time: '+act.time+'<br>',
+            'Location: '+act.location+'<br>',
+            'Member Verify: '+(act.permit==1)+'<br>',
+            'Update: '+new Date(act.updated*1000)+'<br>',
+            '</p>',
+            '<a href="apply.html?act_id='+act.id+'">Apply</a>',
+            '<hr>'
           ].join('')
         )
       }

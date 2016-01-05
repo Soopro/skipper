@@ -494,7 +494,7 @@ Ajax = ->
       xhr.send()
     else
       try
-        send_data = JSON.stringify(request.data)
+        send_data = JSON.stringify(request.data or {})
       catch error
         throw error
 
