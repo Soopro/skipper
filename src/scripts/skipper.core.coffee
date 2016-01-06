@@ -1,6 +1,6 @@
 # -------------------------------
 # Skipper - Soopro member system front-end.
-# Version:  0.0.1
+# Version:  0.0.2
 # -------------------------------
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
@@ -469,7 +469,8 @@ Ajax = ->
     xhr.withCredentials = Boolean(request.withCredentials)
 
     xhr.setRequestHeader 'Content-Type', request.contentType
-
+    xhr.setRequestHeader 'X-Requested-With', 'XMLHttpRequest'
+    
     if typeof request.headers is 'object'
       for k,v of request.headers
         xhr.setRequestHeader k, v
