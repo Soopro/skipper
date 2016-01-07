@@ -1,9 +1,10 @@
 # -------------------------------
 # Skipper - Soopro member system front-end.
-# Version:  0.0.2
 # -------------------------------
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
+
+version = '1.0.0'
 
 TOKEN_COOKIE_NAME = 'sup_member_auth'
 PROFILE_COOKIE_NAME = 'sup_member_profile'
@@ -153,8 +154,8 @@ root.SupMember = (opts) ->
   
   # define api resource
   api = options.apiBaseURL
-  api_open = api + '/crm/entr/' + app_id
-  api_member = api + '/crm/memb/' + app_id
+  api_open = api + '/crm/entr/visitor' + app_id
+  api_member = api + '/crm/entr/member/' + app_id
   api_wx_link = api+'/wx/link_member'
   
   member =
@@ -432,7 +433,7 @@ root.SupMember = (opts) ->
       return true
       
     utils: utils
-    
+    version: version
   return member
 
 
