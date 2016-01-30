@@ -4,7 +4,7 @@
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
 
-version = '1.0.0'
+version = '1.0.1'
 
 TOKEN_COOKIE_NAME = 'sup_member_auth'
 PROFILE_COOKIE_NAME = 'sup_member_profile'
@@ -154,8 +154,8 @@ root.SupMember = (opts) ->
   
   # define api resource
   api = options.apiBaseURL
-  api_open = api + '/crm/entr/visitor' + app_id
-  api_member = api + '/crm/entr/member/' + app_id
+  api_open = api + '/crm/entr/' + app_id + '/visitor'
+  api_member = api + '/crm/entr/' + app_id + '/member'
   api_wx_link = api+'/wx/link_member'
   
   member =
@@ -231,21 +231,21 @@ root.SupMember = (opts) ->
         , failed
     
     pwd:
-      recovery: (data, success, failed)->
-        do_request
-          url: api_open + '/recover_pwd'
-          type: 'POST'
-          data: data
-        , success
-        , failed
-    
-      reset: (data, success, failed)->
-        do_request
-          url: api_open + '/reset_pwd'
-          type: 'POST'
-          data: data
-        , success
-        , failed
+      # recovery: (data, success, failed)->
+      #   do_request
+      #     url: api_open + '/recover_pwd'
+      #     type: 'POST'
+      #     data: data
+      #   , success
+      #   , failed
+      #
+      # reset: (data, success, failed)->
+      #   do_request
+      #     url: api_open + '/reset_pwd'
+      #     type: 'POST'
+      #     data: data
+      #   , success
+      #   , failed
     
       update: (data, success, failed)->
         do_request

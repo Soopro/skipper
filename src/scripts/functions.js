@@ -9,7 +9,9 @@ outer_path = [
 
 
 $(document).ready(function() {
-  var member = new SupMember({apiBaseURL:'http://localhost:5000'});
+  var member = new SupMember({
+    apiBaseURL:'http://localhost:5000'
+  });
 
   current_path = location.pathname.substr(1)
   
@@ -182,46 +184,46 @@ $(document).ready(function() {
     return false;
   });
   
-  // Recovery
-  var resetpwd_url = 'http://localhost:9000/recovery.html'
-  var email_template = '<p>Hello {{meta.name or meta.login}}, <br>'+
-                       'Click the link below to reset your password.<p>'+
-                       '<a href="'+resetpwd_url+'?sid={{meta.sid}}">'+
-                       ''+resetpwd_url+'?sid={{meta.sid}}'+
-                       '</a>'
-  var sid = member.utils.getParam('sid');
-  if(!sid){
-    $('#recovery-form').show();
-    $('#recovery-form').submit(function(e) {
-      member.pwd.recovery({
-        log: $(this).find('[name="log"]').val(),
-        subject: 'Recovery Password',
-        template: email_template
-      }, function(data) {
-        console.log('success:', data);
-        $('#msgbox').html('Recovery Email is send to your mail box.')
-      }, function(error) {
-        console.log('failed:', error.data);
-      });
-      return false;
-    });
-  }else{
-    $('#resetpwd-form').show();
-    $('#resetpwd-form').submit(function(e) {
-      member.pwd.reset({
-        sid: sid,
-        pwd: $(this).find('[name="pwd"]').val(),
-        pwd2: $(this).find('[name="pwd2"]').val(),
-      }, function(data) {
-        $('#msgbox').html('Password reseted.')
-        console.log('success:', data);
-      }, function(error) {
-        $('#msgbox').html(error.data.errmsg)
-        console.log('failed:', error.data);
-      });
-      return false;
-    });
-  }
+  // // Recovery
+  // var resetpwd_url = 'http://localhost:9000/recovery.html'
+  // var email_template = '<p>Hello {{meta.name or meta.login}}, <br>'+
+  //                      'Click the link below to reset your password.<p>'+
+  //                      '<a href="'+resetpwd_url+'?sid={{meta.sid}}">'+
+  //                      ''+resetpwd_url+'?sid={{meta.sid}}'+
+  //                      '</a>'
+  // var sid = member.utils.getParam('sid');
+  // if(!sid){
+  //   $('#recovery-form').show();
+  //   $('#recovery-form').submit(function(e) {
+  //     member.pwd.recovery({
+  //       log: $(this).find('[name="log"]').val(),
+  //       subject: 'Recovery Password',
+  //       template: email_template
+  //     }, function(data) {
+  //       console.log('success:', data);
+  //       $('#msgbox').html('Recovery Email is send to your mail box.')
+  //     }, function(error) {
+  //       console.log('failed:', error.data);
+  //     });
+  //     return false;
+  //   });
+  // }else{
+  //   $('#resetpwd-form').show();
+  //   $('#resetpwd-form').submit(function(e) {
+  //     member.pwd.reset({
+  //       sid: sid,
+  //       pwd: $(this).find('[name="pwd"]').val(),
+  //       pwd2: $(this).find('[name="pwd2"]').val(),
+  //     }, function(data) {
+  //       $('#msgbox').html('Password reseted.')
+  //       console.log('success:', data);
+  //     }, function(error) {
+  //       $('#msgbox').html(error.data.errmsg)
+  //       console.log('failed:', error.data);
+  //     });
+  //     return false;
+  //   });
+  // }
   
   // Activity
   if($('#activities').length > 0){
