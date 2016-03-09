@@ -33,6 +33,7 @@ $(document).ready(function() {
       console.log('failed:', error.data);
     }).finally(function() {
       console.log('finally');
+      window.location.href = 'login.html';
     });
     return false;
   });
@@ -102,7 +103,7 @@ $(document).ready(function() {
   });
   
   $('#register-new-form').submit(function(e) {
-    member.register.newer({
+    member.register.create({
       log: $(this).find('[name="log"]').val(),
       pwd: $(this).find('[name="pwd"]').val(),
       pwd2: $(this).find('[name="pwd2"]').val(),
@@ -190,47 +191,6 @@ $(document).ready(function() {
     return false;
   });
   
-  // // Recovery
-  // var resetpwd_url = 'http://localhost:9000/recovery.html'
-  // var email_template = '<p>Hello {{meta.name or meta.login}}, <br>'+
-  //                      'Click the link below to reset your password.<p>'+
-  //                      '<a href="'+resetpwd_url+'?sid={{meta.sid}}">'+
-  //                      ''+resetpwd_url+'?sid={{meta.sid}}'+
-  //                      '</a>'
-  // var sid = member.utils.getParam('sid');
-  // if(!sid){
-  //   $('#recovery-form').show();
-  //   $('#recovery-form').submit(function(e) {
-  //     member.pwd.recovery({
-  //       log: $(this).find('[name="log"]').val(),
-  //       subject: 'Recovery Password',
-  //       template: email_template
-  //     }, function(data) {
-  //       console.log('success:', data);
-  //       $('#msgbox').html('Recovery Email is send to your mail box.')
-  //     }, function(error) {
-  //       console.log('failed:', error.data);
-  //     });
-  //     return false;
-  //   });
-  // }else{
-  //   $('#resetpwd-form').show();
-  //   $('#resetpwd-form').submit(function(e) {
-  //     member.pwd.reset({
-  //       sid: sid,
-  //       pwd: $(this).find('[name="pwd"]').val(),
-  //       pwd2: $(this).find('[name="pwd2"]').val(),
-  //     }, function(data) {
-  //       $('#msgbox').html('Password reseted.')
-  //       console.log('success:', data);
-  //     }, function(error) {
-  //       $('#msgbox').html(error.data.errmsg)
-  //       console.log('failed:', error.data);
-  //     });
-  //     return false;
-  //   });
-  // }
-  
   // Activity
   if($('#activities').length > 0){
     member.activity.query(function(data) {
@@ -297,7 +257,7 @@ $(document).ready(function() {
       }
       add_apply(apply);
     }
-    
+
     $('button[name="cancel_apply"]').click(function(e){
       var apply_id = $(this).attr('apply-id') || $(this).data('apply-id');
       if(apply_id){
@@ -330,6 +290,9 @@ $(document).ready(function() {
   if($('#create-apply-form').length > 0){
     var act_id = member.utils.getParam('act_id');
     $(this).find('[name="act_id"]').val(act_id);
+    member.profile.get(function(profile) {
+      $('#create-apply-form').find('[name="name"]').val(profile.name);
+    });
   }
   
   $('#create-apply-form').submit(function(e) {
@@ -370,6 +333,7 @@ $(document).ready(function() {
   });
   
   // wxlink
+  member.wxlink.open_sid()
   if(member.token() && member.wxlink.open_sid()){
     member.wxlink.get(function(data){
       if(data.token){

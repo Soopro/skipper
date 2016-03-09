@@ -218,7 +218,7 @@ root.SupMember = (opts) ->
         , success
         , failed
 
-      newer: (data, success, failed)->
+      create: (data, success, failed)->
         do_request
           url: api_open + '/register'
           type: 'POST'
@@ -417,7 +417,7 @@ root.SupMember = (opts) ->
           token: supCookie.get TOKEN_COOKIE_NAME
         , (data)->
             try
-              supCookie.remove WX_LINK_COOKIE_NAME
+              supCookie.set WX_LINK_COOKIE_NAME, data, options.expires
             catch e
               console.error e
             if typeof success is 'function'
