@@ -4,7 +4,7 @@
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
 
-version = '1.0.1'
+version = '1.1.0'
 
 TOKEN_COOKIE_NAME = 'sup_member_auth'
 PROFILE_COOKIE_NAME = 'sup_member_profile'
@@ -89,11 +89,19 @@ root.SupMember = (opts) ->
   
   if options.app_id
     app_id = options.app_id
-  else
+  
+  if not app_id
     html = document.documentElement
     app_id = (html.getAttribute('app') or html.dataset.app)
+  
+  if not app_id
+    metas = document.getElementsByTagName('meta')
+    for meta in metas
+      if meta.getAttribute("name") == "app_id"
+        app_id = meta.getAttribute("content")
+        break
     
-  if typeof app_id != 'string'
+  if typeof app_id != 'string' or not app_id
     throw 'App not found!'
     return
   
@@ -141,7 +149,7 @@ root.SupMember = (opts) ->
         catch e
           console.error e
         return data
-    
+
     if typeof failed_callback is 'function'
       response.catch (error)->
         try
@@ -157,7 +165,7 @@ root.SupMember = (opts) ->
   api_open = api + '/crm/entr/' + app_id + '/visitor'
   api_member = api + '/crm/entr/' + app_id + '/member'
   api_wx_link = api+'/wx/link_member'
-  
+
   member =
     request: (request, success, failed)->
       do_request request
@@ -179,11 +187,7 @@ root.SupMember = (opts) ->
       , failed
     
     logout: (success, failed)->
-      do_request
-        url: api_member + '/logout'
-        type: 'GET'
-        token: supCookie.get TOKEN_COOKIE_NAME
-      , (data)->
+      clean_cookies = ->
         try
           supCookie.remove PROFILE_COOKIE_NAME
           supCookie.remove TOKEN_COOKIE_NAME
@@ -191,17 +195,17 @@ root.SupMember = (opts) ->
           supCookie.remove WX_LINK_COOKIE_NAME
         catch e
           console.error e
+          
+      do_request
+        url: api_member + '/logout'
+        type: 'GET'
+        token: supCookie.get TOKEN_COOKIE_NAME
+      , (data)->
+        clean_cookies()
         if typeof success is 'function'
           success(data)
       , (error)->
-        if error.status == 401
-          try
-            supCookie.remove PROFILE_COOKIE_NAME
-            supCookie.remove TOKEN_COOKIE_NAME
-            supCookie.remove WX_OPEN_SID_COOKIE_NAME
-            supCookie.remove WX_LINK_COOKIE_NAME
-          catch e
-            console.error e
+        clean_cookies()
         if typeof failed is 'function'
           failed(data)
 

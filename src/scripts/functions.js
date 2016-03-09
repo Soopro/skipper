@@ -10,7 +10,7 @@ outer_path = [
 
 $(document).ready(function() {
   var member = new SupMember({
-    apiBaseURL:'http://localhost:5000'
+    apiBaseURL:'http://api.sup.farm'
   });
 
   current_path = location.pathname.substr(1)
@@ -82,12 +82,17 @@ $(document).ready(function() {
   
   $('#register-join-form').submit(function(e){
     var log = $(this).find('[name="log"]').val();
+    var pwd = $(this).find('[name="pwd"]').val();
+    var pwd2 = $(this).find('[name="pwd2"]').val();
     member.register.join({
       log: log,
+      pwd: pwd,
+      pwd2: pwd2,
     }).then(function(data){
       console.log('success:', data);
       console.log('Join!!!')
       $('#msgbox').html('You are joined! Go Login');
+      $('#register-join-form').hide();
       return data;
     }).catch(function(error){
       console.log('failed:', error.data);
@@ -108,6 +113,7 @@ $(document).ready(function() {
     }, function(data) {
       console.log('success:', data);
       $('#msgbox').html('You are registered! Go Login');
+      $('#register-new-form').hide();
     }, function(error) {
       console.log('failed:', error.data);
       $('#msgbox').html(error.data.errmsg);
