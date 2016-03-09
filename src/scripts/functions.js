@@ -316,8 +316,9 @@ $(document).ready(function() {
     });
     return false;
   });
-  
+
   $('#create-free-apply-form').submit(function(e) {
+    
     member.apply.free({
       name: $(this).find('[name="name"]').val(),
       activity_alias: $(this).find('[name="activity"]').val(),
@@ -333,7 +334,6 @@ $(document).ready(function() {
   });
   
   // wxlink
-  member.wxlink.open_sid()
   if(member.token() && member.wxlink.open_sid()){
     member.wxlink.get(function(data){
       if(data.token){
@@ -342,6 +342,7 @@ $(document).ready(function() {
         $('#wx-link-btn').show();
       }
     }, function(error){
+      console.log('fuck');
       console.log(error.data);
     });
   }
@@ -364,6 +365,7 @@ $(document).ready(function() {
     });
   });
   
+  // automatic login by wechat openid
   if(!member.token() && member.wxlink.open_sid()){
     console.log('Try use WX open id to login')
     member.wxlink.login(function(data){

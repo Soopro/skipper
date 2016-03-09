@@ -100,7 +100,7 @@ root.SupMember = (opts) ->
       if meta.getAttribute("name") == "app_id"
         app_id = meta.getAttribute("content")
         break
-    
+
   if typeof app_id != 'string' or not app_id
     throw 'App not found!'
     return
@@ -308,9 +308,9 @@ root.SupMember = (opts) ->
           type: 'GET'
         , success
         , failed
-      get: (key, success, failed)->
+      get: (id_or_alias, success, failed)->
         do_request
-          url: api_open + '/activity/' + key
+          url: api_open + '/activity/' + id_or_alias
           type: 'GET'
         , success
         , failed
@@ -323,7 +323,7 @@ root.SupMember = (opts) ->
           data: data
         , success
         , failed
-      
+
       query: (success, failed)->
         do_request
           url: api_member + '/applyment'
@@ -369,7 +369,14 @@ root.SupMember = (opts) ->
               console.error e
           if typeof success is 'function'
             success(data)
-        , failed
+        , (error)->
+          try
+            supCookie.remove WX_OPEN_SID_COOKIE_NAME
+          catch e
+            console.error e
+          if typeof failed is 'function'
+            failed(error)
+
       get: (success, failed)->
         wx_link = supCookie.get WX_LINK_COOKIE_NAME
         if wx_link
@@ -392,7 +399,14 @@ root.SupMember = (opts) ->
               console.error e
             if typeof success is 'function'
               success(data)
-          , failed
+          , (error)->
+            try
+              supCookie.remove WX_OPEN_SID_COOKIE_NAME
+            catch e
+              console.error e
+            if typeof failed is 'function'
+              failed(error)
+
       unlink: (success, failed)->
         wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE_NAME
         do_request
