@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta http-equiv=Content-Type content="text/html;charset=utf-8">
+	<meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0">
+	<meta name="apple-mobile-web-app-capable" content="yes">
+	<meta name="apple-mobile-web-app-status-bar-style" content="black">
+	<meta name="format-detection" content="telephone=yes">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="description" content="Supmice......">
+	<meta name="author" content="redy">
+  <meta name="app_id" content="5618bd3ef596b149a47b8df9">
+	<!-- Favicons -->
+	<link rel="apple-touch-icon-precomposed" sizes="144x144"
+				href="ico/apple-touch-icon-144-precomposed.png">
+	<link rel="shortcut icon" href="ico/favicon.png">
+	<title>Supmice Member login</title>
+</head>
+<body>
+  <div id="applyments">
+    
+  </div>
+  
+  <form id="create-apply-form">
+    <h4>Create apply</h4>
+    <p>
+      <input type="radio" name="free" id="radio_free" value="1"/>
+        <label for="radio_free">Free</label>
+      <input type="radio" name="free" id="radio_member" value="0" checked/>
+        <label for="radio_member">Member</label>
+    </p>
+    <p>
+    	Name:
+    	<input type="text" name="name" title="input your name">
+    </p>
+    <p>
+    	Activity ID:
+    	<input disabled type="text" name="act_id" 
+             title="input your activity id"/>
+    </p>
+    <p>
+    	Message
+    	<textarea name="message" rows="6"></textarea>
+    </p>
+    <p id="code">
+      Promo Code:
+      <input type="text" name="code" title="input promo code here"/>
+      <br>
+      <small>Promo is given by the owner, it's optional.</small>
+    </p>
+    <input type="submit" value="make applyment"/>
+  </form>
+  <p>
+    <a href="applyments.html">My Applyments</a>
+    &nbsp;
+    <a href="index.html">Back</a>
+  </p>
+<p><input type="submit" id="logout" value="logout"/></p>
+<!-- JS -->
+<script src="scripts/libs/jquery.min.js"></script>
+<!-- build:js scripts/libs/skipper.min.js -->
+<script src="scripts/libs/q.js"></script>
+<script src="scripts/skipper.js"></script>
+<!-- /build -->
+<script src="scripts/functions.js"></script>
+</body>
+</html>
