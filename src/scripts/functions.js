@@ -10,7 +10,7 @@ outer_path = [
 
 $(document).ready(function() {
   var member = new SupMember({
-    apiBaseURL:'http://api.sup.farm'
+    apiBaseURL:'http://localhost:5000'
   });
 
   current_path = location.pathname.substr(1)
@@ -85,10 +85,12 @@ $(document).ready(function() {
     var log = $(this).find('[name="log"]').val();
     var pwd = $(this).find('[name="pwd"]').val();
     var pwd2 = $(this).find('[name="pwd2"]').val();
+    var code = $(this).find('[name="code"]').val();
     member.register.join({
       log: log,
       pwd: pwd,
       pwd2: pwd2,
+      code: code,
     }).then(function(data){
       console.log('success:', data);
       console.log('Join!!!')
@@ -110,7 +112,8 @@ $(document).ready(function() {
       name: $(this).find('[name="name"]').val(),
       email: $(this).find('[name="email"]').val(),
       mobile: $(this).find('[name="mobile"]').val(),
-      avatar: $(this).find('[name="avatar"]').val()
+      avatar: $(this).find('[name="avatar"]').val(),
+      code: $(this).find('[name="code"]').val()
     }, function(data) {
       console.log('success:', data);
       $('#msgbox').html('You are registered! Go Login');
@@ -307,6 +310,7 @@ $(document).ready(function() {
       name: $(this).find('[name="name"]').val(),
       activity_id: $(this).find('[name="act_id"]').val(),
       message: $(this).find('[name="message"]').val(),
+      code: $(this).find('[name="code"]').val(),
       meta: {}
     }, function(data) {
       console.log('success:', data);
@@ -323,6 +327,7 @@ $(document).ready(function() {
       name: $(this).find('[name="name"]').val(),
       activity_alias: $(this).find('[name="activity"]').val(),
       message: $(this).find('[name="message"]').val(),
+      code: $(this).find('[name="code"]').val(),
       meta: {}
     }, function(data) {
       console.log('success:', data);
