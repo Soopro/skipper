@@ -59,7 +59,7 @@
         "cwd": "dist",
         "src": [
           "scripts/libs/q.js",
-          "scripts/skipper.core.js"
+          "scripts/skipper.js"
         ],
         "output": "scripts/libs/skipper.min.js"
       }
