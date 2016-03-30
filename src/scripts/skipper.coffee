@@ -7,6 +7,7 @@ root = if is_exports then exports else this
 version = '1.1.0'
 
 TOKEN_COOKIE_NAME = 'sup_member_auth'
+OPEN_ID_COOKIE_NAME = 'sup_member_open_id'
 PROFILE_COOKIE_NAME = 'sup_member_profile'
 WX_OPEN_SID_COOKIE_NAME = 'sup_wx_open_sid'
 WX_LINK_COOKIE_NAME = 'sup_wx_link'
@@ -180,6 +181,7 @@ root.SupMember = (opts) ->
       , (data)->
         try
           supCookie.set TOKEN_COOKIE_NAME, data.token, options.expires
+          supCookie.set OPEN_ID_COOKIE_NAME, data.open_id, options.expires
         catch e
           console.error e
         if typeof success is 'function'
@@ -191,6 +193,7 @@ root.SupMember = (opts) ->
         try
           supCookie.remove PROFILE_COOKIE_NAME
           supCookie.remove TOKEN_COOKIE_NAME
+          supCookie.remove OPEN_ID_COOKIE_NAME
           supCookie.remove WX_OPEN_SID_COOKIE_NAME
           supCookie.remove WX_LINK_COOKIE_NAME
         catch e
@@ -365,6 +368,7 @@ root.SupMember = (opts) ->
           if data.token
             try
               supCookie.set TOKEN_COOKIE_NAME, data.token, options.expires
+              supCookie.set OPEN_ID_COOKIE_NAME, data.open_id, options.expires
             catch e
               console.error e
           if typeof success is 'function'
@@ -440,11 +444,25 @@ root.SupMember = (opts) ->
 
     token: ->
       return supCookie.get TOKEN_COOKIE_NAME
+    
+    open_id: ->
+      return supCookie.get OPEN_ID_COOKIE_NAME
+      
     set_token: (token)->
       if not token
         return false
       try
-        supCookie.set TOKEN_COOKIE_NAME, data.token, options.expires
+        supCookie.set TOKEN_COOKIE_NAME, token, options.expires
+      catch e
+        console.error e
+        return false
+      return true
+
+    set_open_id: (open_id)->
+      if not open_id
+        return false
+      try
+        supCookie.set OPEN_ID_COOKIE_NAME, open_id, options.expires
       catch e
         console.error e
         return false
