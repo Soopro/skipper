@@ -212,56 +212,22 @@ root.SupMember = (opts) ->
         if typeof failed is 'function'
           failed(data)
 
-    register:
-      check: (data, success, failed)->
-        do_request
-          url: api_open + '/check'
-          type: 'POST'
-          data: data
-        , success
-        , failed
+    register: (data, success, failed)->
+      do_request
+        url: api_open + '/register'
+        type: 'POST'
+        data: data
+      , success
+      , failed
 
-      create: (data, success, failed)->
-        do_request
-          url: api_open + '/register'
-          type: 'POST'
-          data: data
-        , success
-        , failed
-      
-      join: (data, success, failed)->
-        do_request
-          url: api_open + '/join'
-          type: 'POST'
-          data: data
-        , success
-        , failed
-    
-    pwd:
-      # recovery: (data, success, failed)->
-      #   do_request
-      #     url: api_open + '/recover_pwd'
-      #     type: 'POST'
-      #     data: data
-      #   , success
-      #   , failed
-      #
-      # reset: (data, success, failed)->
-      #   do_request
-      #     url: api_open + '/reset_pwd'
-      #     type: 'POST'
-      #     data: data
-      #   , success
-      #   , failed
-    
-      update: (data, success, failed)->
-        do_request
-          url: api_member + '/update_pwd'
-          type: 'POST'
-          data: data
-          token: supCookie.get TOKEN_COOKIE_NAME
-        , success
-        , failed
+    pwd: (data, success, failed)->
+      do_request
+        url: api_member + '/update_pwd'
+        type: 'POST'
+        data: data
+        token: supCookie.get TOKEN_COOKIE_NAME
+      , success
+      , failed
 
 
     profile:

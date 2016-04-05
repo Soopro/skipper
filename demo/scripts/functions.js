@@ -14,15 +14,15 @@ $(document).ready(function() {
   });
 
   current_path = location.pathname.substr(1)
-  
+
   if(outer_path.indexOf(current_path) < 0 && !member.token()){
     window.location.href = 'login.html';
   }else if(current_path == 'login.html' && member.token()){
     window.location.href = 'index.html';
   }
-  
+
   // Logout
-  
+
   $('#logout').click(function(e) {
     member.logout()
     .then(function(data) {
@@ -37,7 +37,7 @@ $(document).ready(function() {
     });
     return false;
   });
-  
+
   // Login
   $('#login-form').submit(function(e) {
     member.login({
@@ -54,58 +54,12 @@ $(document).ready(function() {
     });
     return false;
   });
-  
-  
+
+
   // Register
-  $('#register-check-form').submit(function(e){
-    var log = $(this).find('[name="log"]').val();
-    member.register.check({
-      log: log
-    }).then(function(data){
-      console.log('success:', data);
-      if(!data.exists){
-        $('#register-new-form').show();
-        $('#register-new-form').find('[name="log"]').val(log);
-      }else if(!data.belong){
-        $('#register-join-form').show();
-        $('#register-join-form').find('[name="log"]').val(log);
-      }else{
-        $('#msgbox').html('You are already a member!');
-      }
-      $('#register-check-form').hide();
-      return data
-    }).catch(function(error){
-      console.log('failed:', error.data);
-      $('#msgbox').html(error.data.errmsg);
-    });
-    return false;
-  });
-  
-  $('#register-join-form').submit(function(e){
-    var log = $(this).find('[name="log"]').val();
-    var pwd = $(this).find('[name="pwd"]').val();
-    var pwd2 = $(this).find('[name="pwd2"]').val();
-    var code = $(this).find('[name="code"]').val();
-    member.register.join({
-      log: log,
-      pwd: pwd,
-      pwd2: pwd2,
-      code: code,
-    }).then(function(data){
-      console.log('success:', data);
-      console.log('Join!!!')
-      $('#msgbox').html('You are joined! Go Login');
-      $('#register-join-form').hide();
-      return data;
-    }).catch(function(error){
-      console.log('failed:', error.data);
-      $('#msgbox').html(error.data.errmsg);
-    });
-    return false;
-  });
-  
+
   $('#register-new-form').submit(function(e) {
-    member.register.create({
+    member.register({
       log: $(this).find('[name="log"]').val(),
       pwd: $(this).find('[name="pwd"]').val(),
       pwd2: $(this).find('[name="pwd2"]').val(),
@@ -122,7 +76,7 @@ $(document).ready(function() {
       console.log('failed:', error.data);
       $('#msgbox').html(error.data.errmsg);
     });
-    
+
     return false;
   });
 
@@ -182,7 +136,7 @@ $(document).ready(function() {
       console.log('New password not match');
       return
     }
-    member.pwd.update({
+    member.pwd({
       opwd: $(this).find('[name="opwd"]').val(),
       pwd: $(this).find('[name="pwd"]').val(),
       pwd2: $(this).find('[name="pwd2"]').val(),
@@ -193,7 +147,7 @@ $(document).ready(function() {
     });
     return false;
   });
-  
+
   // Activity
   if($('#activities').length > 0){
     member.activity.query(function(data) {
@@ -219,7 +173,7 @@ $(document).ready(function() {
       console.log('failed:', error.data);
     });
   }
-  
+
   if($('#activity').length > 0){
     alias = $('#activity').attr('alias') || $('#activity').data('alias');
     member.activity.get(alias
@@ -229,7 +183,7 @@ $(document).ready(function() {
       console.log('failed:', error.data);
     });
   }
-  
+
   // Applayment
   function add_apply(apply){
     $('#applyments').prepend(
@@ -276,7 +230,7 @@ $(document).ready(function() {
           console.log('failed:', error.data);
         });
       }
-      
+
     });
   }
 
@@ -289,7 +243,7 @@ $(document).ready(function() {
       console.log('failed:', error.data);
     });
   }
-  
+
   if($('#create-apply-form').length > 0){
     var act_id = member.utils.getParam('act_id');
     $(this).find('[name="act_id"]').val(act_id);
@@ -297,7 +251,7 @@ $(document).ready(function() {
       $('#create-apply-form').find('[name="name"]').val(profile.name);
     });
   }
-  
+
   $('#create-apply-form').submit(function(e) {
     var free_mode = $(this).find('[name="free"]:checked').val();
     var create_func;
@@ -322,7 +276,7 @@ $(document).ready(function() {
   });
 
   $('#create-free-apply-form').submit(function(e) {
-    
+
     member.apply.free({
       name: $(this).find('[name="name"]').val(),
       activity_alias: $(this).find('[name="activity"]').val(),
@@ -337,7 +291,7 @@ $(document).ready(function() {
     });
     return false;
   });
-  
+
   // wxlink
   if(member.token() && member.wxlink.open_sid()){
     member.wxlink.get(function(data){
@@ -369,7 +323,7 @@ $(document).ready(function() {
       console.log(error.data);
     });
   });
-  
+
   // automatic login by wechat openid
   if(!member.token() && member.wxlink.open_sid()){
     console.log('Try use WX open id to login')
