@@ -40,7 +40,7 @@ utils =
       return url
 
     for k, v of params
-      if typeof v is 'object' and typeof v.length is 'number'
+      if v isnt null and typeof v is 'object' and typeof v.length is 'number'
         for item in v
           url = _add(url, k, item)
       else

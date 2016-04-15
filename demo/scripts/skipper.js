@@ -55,7 +55,7 @@
       };
       for (k in params) {
         v = params[k];
-        if (typeof v === 'object' && typeof v.length === 'number') {
+        if (v !== null && typeof v === 'object' && typeof v.length === 'number') {
           for (j = 0, len = v.length; j < len; j++) {
             item = v[j];
             url = _add(url, k, item);
