@@ -28,7 +28,7 @@ utils =
       s += (if s.length > 0 then '&' else '?') + kvp
     document.location.search = s
     return {key, value}
-  
+
   addParam: (url, params)->
     if typeof params isnt 'object'
       return url
@@ -43,11 +43,11 @@ utils =
       if typeof v is 'object' and typeof v.length is 'number'
         for item in v
           url = _add(url, k, item)
-      else  
+      else
         url = _add(url, k, v)
 
     return url
-  
+
   getParam: (key) ->
     query_args = {}
     query = window.location.search.substring(1)
@@ -76,25 +76,25 @@ utils =
       return query_args
 
 
-default_options = 
+default_options =
   apiBaseURL: 'http://api.soopro.com'
   contentType: 'application/json'
   responseType: 'json'
   withCredentials: false
   expires: 1000*3600*24
-  
+
 root.SupMember = (opts) ->
   options = default_options
   for k,v of opts
     options[k] = v
-  
+
   if options.app_id
     app_id = options.app_id
-  
+
   if not app_id
     html = document.documentElement
     app_id = (html.getAttribute('app') or html.dataset.app)
-  
+
   if not app_id
     metas = document.getElementsByTagName('meta')
     for meta in metas
@@ -105,15 +105,15 @@ root.SupMember = (opts) ->
   if typeof app_id != 'string' or not app_id
     throw 'App not found!'
     return
-  
+
   request_types = [
     'POST'
     'GET'
     'DELETE'
     'PUT'
   ]
-  
-  
+
+
   # process wx member link
   wx_open_sid = utils.getParam(WX_OPEN_SID)
 
@@ -124,7 +124,7 @@ root.SupMember = (opts) ->
       console.error e
   else
     wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE_NAME
-      
+
   # define request function
   ajax = new Ajax()
   do_request = (request, success_callback, failed_callback) ->
@@ -142,7 +142,7 @@ root.SupMember = (opts) ->
       responseType: request.responseType or options.responseType
       withCredentials: request.withCredentials or options.withCredentials
       headers: request.headers
-      
+
     if typeof success_callback is 'function'
       response.then (data)->
         try
@@ -160,7 +160,7 @@ root.SupMember = (opts) ->
         return error
 
     return response
-  
+
   # define api resource
   api = options.apiBaseURL
   api_open = api + '/crm/entr/' + app_id + '/visitor'
@@ -187,7 +187,7 @@ root.SupMember = (opts) ->
         if typeof success is 'function'
           success(data)
       , failed
-    
+
     logout: (success, failed)->
       clean_cookies = ->
         try
@@ -198,7 +198,7 @@ root.SupMember = (opts) ->
           supCookie.remove WX_LINK_COOKIE_NAME
         catch e
           console.error e
-          
+
       do_request
         url: api_member + '/logout'
         type: 'GET'
@@ -284,7 +284,7 @@ root.SupMember = (opts) ->
         , success
         , failed
 
-    apply: 
+    apply:
       free: (data, success, failed)->
         do_request
           url: api_open + '/applyment'
@@ -300,7 +300,7 @@ root.SupMember = (opts) ->
           token: supCookie.get TOKEN_COOKIE_NAME
         , success
         , failed
-      
+
       create: (data, success, failed)->
         do_request
           url: api_member + '/applyment'
@@ -309,7 +309,7 @@ root.SupMember = (opts) ->
           token: supCookie.get TOKEN_COOKIE_NAME
         , success
         , failed
-      
+
       remove: (key, success, failed)->
         do_request
           url: api_member + '/applyment/' + key
@@ -317,9 +317,9 @@ root.SupMember = (opts) ->
           token: supCookie.get TOKEN_COOKIE_NAME
         , success
         , failed
-    
+
     wxlink:
-      open_sid: ->
+      get_open_sid: ->
         return supCookie.get WX_OPEN_SID_COOKIE_NAME
       login: (success, failed)->
         wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE_NAME
@@ -396,7 +396,7 @@ root.SupMember = (opts) ->
         do_request
           url: api_wx_link
           type: 'POST'
-          data: 
+          data:
             open_sid: wx_open_sid
           token: supCookie.get TOKEN_COOKIE_NAME
         , (data)->
@@ -408,12 +408,12 @@ root.SupMember = (opts) ->
               success(data)
         , failed
 
-    token: ->
+    get_token: ->
       return supCookie.get TOKEN_COOKIE_NAME
-    
-    open_id: ->
+
+    get_open_id: ->
       return supCookie.get OPEN_ID_COOKIE_NAME
-      
+
     set_token: (token)->
       if not token
         return false
@@ -433,7 +433,7 @@ root.SupMember = (opts) ->
         console.error e
         return false
       return true
-      
+
     utils: utils
     version: version
   return member
@@ -473,14 +473,14 @@ Ajax = ->
 
     xhr.setRequestHeader 'Content-Type', request.contentType
     xhr.setRequestHeader 'X-Requested-With', 'XMLHttpRequest'
-    
+
     if typeof request.headers is 'object'
       for k,v of request.headers
         xhr.setRequestHeader k, v
-    
+
     # listener
     deferred = Q.defer()
-    
+
     ready = (e)->
       xhr = this
       if xhr.readyState == xhr.DONE
@@ -490,9 +490,9 @@ Ajax = ->
           deferred.resolve(result.data)
         else
           deferred.reject(result)
-    
+
     xhr.addEventListener 'readystatechange', ready
-    
+
     # send
     if type in ['GET', 'DELETE']
       xhr.send()
@@ -506,7 +506,7 @@ Ajax = ->
 
     return deferred.promise
 
-  
+
   parse_response = (xhr, headers) ->
     if xhr.responseType is 'json'
       data = xhr.response
@@ -524,7 +524,7 @@ Ajax = ->
       statusText: xhr.statusText
       responseType: xhr.responseType
       responseURL: xhr.responseURL
-    
+
     return result
 
   return ajax
@@ -545,7 +545,7 @@ procces_cookie_input = (value)->
   if typeof value == 'object'
     value = JSON.stringify(value)
   return value
-  
+
 supCookie =
   set: (cname, cvalue, expires, path, domain) ->
     cvalue = procces_cookie_input(cvalue)
@@ -555,7 +555,7 @@ supCookie =
     path = if path then 'path='+path+'; ' else 'path=/; '
     domain = if domain then 'domain='+domain+'; ' else ''
     document.cookie = cname+'='+cvalue+'; '+expires+domain+path
-    
+
   get: (cname) ->
     name = cname + '='
     ca = document.cookie.split(';')

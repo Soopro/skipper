@@ -357,7 +357,7 @@
         }
       },
       wxlink: {
-        open_sid: function() {
+        get_open_sid: function() {
           return supCookie.get(WX_OPEN_SID_COOKIE_NAME);
         },
         login: function(success, failed) {
@@ -483,10 +483,10 @@
           }, failed);
         }
       },
-      token: function() {
+      get_token: function() {
         return supCookie.get(TOKEN_COOKIE_NAME);
       },
-      open_id: function() {
+      get_open_id: function() {
         return supCookie.get(OPEN_ID_COOKIE_NAME);
       },
       set_token: function(token) {

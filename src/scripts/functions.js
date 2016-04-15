@@ -15,9 +15,9 @@ $(document).ready(function() {
 
   current_path = location.pathname.substr(1)
 
-  if(outer_path.indexOf(current_path) < 0 && !member.token()){
+  if(outer_path.indexOf(current_path) < 0 && !member.get_token()){
     window.location.href = 'login.html';
-  }else if(current_path == 'login.html' && member.token()){
+  }else if(current_path == 'login.html' && member.get_token()){
     window.location.href = 'index.html';
   }
 
@@ -293,7 +293,7 @@ $(document).ready(function() {
   });
 
   // wxlink
-  if(member.token() && member.wxlink.open_sid()){
+  if(member.get_token() && member.wxlink.get_open_sid()){
     member.wxlink.get(function(data){
       if(data.token){
         $('#wx-unlink-btn').show();
@@ -325,11 +325,11 @@ $(document).ready(function() {
   });
 
   // automatic login by wechat openid
-  if(!member.token() && member.wxlink.open_sid()){
+  if(!member.get_token() && member.wxlink.get_open_sid()){
     console.log('Try use WX open id to login')
     member.wxlink.login(function(data){
       console.log(data);
-      if(member.token()){
+      if(member.get_token()){
         window.location.href = 'index.html';
       }
     }, function(error){
