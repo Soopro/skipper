@@ -6,7 +6,7 @@
 
   root = is_exports ? exports : this;
 
-  version = '1.1.0';
+  version = '1.2.0';
 
   TOKEN_COOKIE_NAME = 'sup_member_auth';
 
