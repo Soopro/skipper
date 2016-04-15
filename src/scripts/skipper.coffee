@@ -4,7 +4,7 @@
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
 
-version = '1.1.0'
+version = '1.2.0'
 
 TOKEN_COOKIE_NAME = 'sup_member_auth'
 OPEN_ID_COOKIE_NAME = 'sup_member_open_id'
