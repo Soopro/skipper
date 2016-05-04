@@ -226,7 +226,13 @@ root.SupMember = (opts) ->
         type: 'POST'
         data: data
         token: supCookie.get TOKEN_COOKIE_NAME
-      , success
+      , (data)->
+        try
+          supCookie.set TOKEN_COOKIE_NAME, data.token, options.expires
+        catch e
+          console.error e
+        if typeof success is 'function'
+          success(data)
       , failed
 
 
