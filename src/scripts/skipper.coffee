@@ -278,7 +278,12 @@ root.SupMember = (opts) ->
         , failed
 
       clean: ->
-        supCookie.remove PROFILE_COOKIE
+        try
+          supCookie.remove PROFILE_COOKIE
+          return true
+        catch e
+          console.error e
+          return false
 
     activity:
       query: (success, failed)->
@@ -416,6 +421,7 @@ root.SupMember = (opts) ->
             if typeof success is 'function'
               success(data)
         , failed
+
       link: (success, failed)->
         wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE
         do_request
@@ -434,8 +440,13 @@ root.SupMember = (opts) ->
         , failed
 
       clean: ->
-        supCookie.remove WX_OPEN_SID_COOKIE
-        supCookie.remove WX_LINK_COOKIE
+        try
+          supCookie.remove WX_OPEN_SID_COOKIE
+          supCookie.remove WX_LINK_COOKIE
+          return true
+        catch e
+          console.error e
+          return false
 
     token: (token)->
       if token in [null, false]
