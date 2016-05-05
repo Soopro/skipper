@@ -4,13 +4,13 @@
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
 
-version = '1.2.0'
+version = '1.2.2'
 
-TOKEN_COOKIE_NAME = 'sup_member_auth'
-OPEN_ID_COOKIE_NAME = 'sup_member_open_id'
-PROFILE_COOKIE_NAME = 'sup_member_profile'
-WX_OPEN_SID_COOKIE_NAME = 'sup_wx_open_sid'
-WX_LINK_COOKIE_NAME = 'sup_wx_link'
+TOKEN_COOKIE = 'sup_member_auth'
+OPEN_ID_COOKIE = 'sup_member_open_id'
+PROFILE_COOKIE = 'sup_member_profile'
+WX_OPEN_SID_COOKIE = 'sup_wx_open_sid'
+WX_LINK_COOKIE = 'sup_wx_link'
 
 WX_OPEN_SID = 'wx_open_sid'
 
@@ -119,11 +119,11 @@ root.SupMember = (opts) ->
 
   if wx_open_sid
     try
-      supCookie.set WX_OPEN_SID_COOKIE_NAME, wx_open_sid, options.expires
+      supCookie.set WX_OPEN_SID_COOKIE, wx_open_sid, options.expires
     catch e
       console.error e
   else
-    wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE_NAME
+    wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE
 
   # define request function
   ajax = new Ajax()
@@ -161,6 +161,17 @@ root.SupMember = (opts) ->
 
     return response
 
+  # clean cookie
+  clean_cookies = ->
+    try
+      supCookie.remove PROFILE_COOKIE
+      supCookie.remove TOKEN_COOKIE
+      supCookie.remove OPEN_ID_COOKIE
+      supCookie.remove WX_OPEN_SID_COOKIE
+      supCookie.remove WX_LINK_COOKIE
+    catch e
+      console.error e
+
   # define api resource
   api = options.apiBaseURL
   api_open = api + '/crm/entr/' + app_id + '/visitor'
@@ -180,8 +191,8 @@ root.SupMember = (opts) ->
         data: data
       , (data)->
         try
-          supCookie.set TOKEN_COOKIE_NAME, data.token, options.expires
-          supCookie.set OPEN_ID_COOKIE_NAME, data.open_id, options.expires
+          supCookie.set TOKEN_COOKIE, data.token, options.expires
+          supCookie.set OPEN_ID_COOKIE, data.open_id, options.expires
         catch e
           console.error e
         if typeof success is 'function'
@@ -189,20 +200,10 @@ root.SupMember = (opts) ->
       , failed
 
     logout: (success, failed)->
-      clean_cookies = ->
-        try
-          supCookie.remove PROFILE_COOKIE_NAME
-          supCookie.remove TOKEN_COOKIE_NAME
-          supCookie.remove OPEN_ID_COOKIE_NAME
-          supCookie.remove WX_OPEN_SID_COOKIE_NAME
-          supCookie.remove WX_LINK_COOKIE_NAME
-        catch e
-          console.error e
-
       do_request
         url: api_member + '/logout'
         type: 'GET'
-        token: supCookie.get TOKEN_COOKIE_NAME
+        token: supCookie.get TOKEN_COOKIE
       , (data)->
         clean_cookies()
         if typeof success is 'function'
@@ -225,10 +226,10 @@ root.SupMember = (opts) ->
         url: api_member + '/update_pwd'
         type: 'POST'
         data: data
-        token: supCookie.get TOKEN_COOKIE_NAME
+        token: supCookie.get TOKEN_COOKIE
       , (data)->
         try
-          supCookie.set TOKEN_COOKIE_NAME, data.token, options.expires
+          supCookie.set TOKEN_COOKIE, data.token, options.expires
         catch e
           console.error e
         if typeof success is 'function'
@@ -238,7 +239,7 @@ root.SupMember = (opts) ->
 
     profile:
       get: (success, failed)->
-        profile = supCookie.get PROFILE_COOKIE_NAME
+        profile = supCookie.get PROFILE_COOKIE
         if profile
           deferred = Q.defer()
           deferred.resolve(profile)
@@ -251,10 +252,10 @@ root.SupMember = (opts) ->
           do_request
             url: api_member + '/profile'
             type: 'GET'
-            token: supCookie.get TOKEN_COOKIE_NAME
+            token: supCookie.get TOKEN_COOKIE
           , (data)->
             try
-              supCookie.set PROFILE_COOKIE_NAME, data, options.expires
+              supCookie.set PROFILE_COOKIE, data, options.expires
             catch e
               console.error e
             if typeof success is 'function'
@@ -266,15 +267,18 @@ root.SupMember = (opts) ->
           url: api_member + '/profile'
           type: 'PUT'
           data: data
-          token: supCookie.get TOKEN_COOKIE_NAME
+          token: supCookie.get TOKEN_COOKIE
         , (data)->
           try
-            supCookie.set PROFILE_COOKIE_NAME, data, options.expires
+            supCookie.set PROFILE_COOKIE, data, options.expires
           catch e
             console.error e
           if typeof success is 'function'
             success(data)
         , failed
+
+      clean: ->
+        supCookie.remove PROFILE_COOKIE
 
     activity:
       query: (success, failed)->
@@ -303,7 +307,7 @@ root.SupMember = (opts) ->
         do_request
           url: api_member + '/applyment'
           type: 'GET'
-          token: supCookie.get TOKEN_COOKIE_NAME
+          token: supCookie.get TOKEN_COOKIE
         , success
         , failed
 
@@ -312,7 +316,7 @@ root.SupMember = (opts) ->
           url: api_member + '/applyment'
           type: 'POST'
           data: data
-          token: supCookie.get TOKEN_COOKIE_NAME
+          token: supCookie.get TOKEN_COOKIE
         , success
         , failed
 
@@ -320,41 +324,56 @@ root.SupMember = (opts) ->
         do_request
           url: api_member + '/applyment/' + key
           type: 'DELETE'
-          token: supCookie.get TOKEN_COOKIE_NAME
+          token: supCookie.get TOKEN_COOKIE
         , success
         , failed
 
     wxlink:
-      get_open_sid: ->
-        return supCookie.get WX_OPEN_SID_COOKIE_NAME
+      open_sid: (sid)->
+        if token in [null, false]
+          try
+            supCookie.remove WX_OPEN_SID_COOKIE
+          catch e
+            console.error e
+            return false
+
+        else if token
+          try
+            supCookie.set WX_OPEN_SID_COOKIE, sid, options.expires
+          catch e
+            console.error e
+            return false
+
+        return supCookie.get WX_OPEN_SID_COOKIE
+
       login: (success, failed)->
-        wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE_NAME
+        wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE
         do_request
           url: api_wx_link+'/'+wx_open_sid
           type: 'GET'
         , (data)->
           try
-            supCookie.set WX_LINK_COOKIE_NAME, data, options.expires
+            supCookie.set WX_LINK_COOKIE, data, options.expires
           catch e
             console.error e
           if data.token
             try
-              supCookie.set TOKEN_COOKIE_NAME, data.token, options.expires
-              supCookie.set OPEN_ID_COOKIE_NAME, data.open_id, options.expires
+              supCookie.set TOKEN_COOKIE, data.token, options.expires
+              supCookie.set OPEN_ID_COOKIE, data.open_id, options.expires
             catch e
               console.error e
           if typeof success is 'function'
             success(data)
         , (error)->
           try
-            supCookie.remove WX_OPEN_SID_COOKIE_NAME
+            supCookie.remove WX_OPEN_SID_COOKIE
           catch e
             console.error e
           if typeof failed is 'function'
             failed(error)
 
       get: (success, failed)->
-        wx_link = supCookie.get WX_LINK_COOKIE_NAME
+        wx_link = supCookie.get WX_LINK_COOKIE
         if wx_link
           deferred = Q.defer()
           deferred.resolve(wx_link)
@@ -364,84 +383,98 @@ root.SupMember = (opts) ->
               return data
           return deferred.promise
         else
-          wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE_NAME
+          wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE
           do_request
             url: api_wx_link+'/'+wx_open_sid
             type: 'GET'
           , (data)->
             try
-              supCookie.set WX_LINK_COOKIE_NAME, data, options.expires
+              supCookie.set WX_LINK_COOKIE, data, options.expires
             catch e
               console.error e
             if typeof success is 'function'
               success(data)
           , (error)->
             try
-              supCookie.remove WX_OPEN_SID_COOKIE_NAME
+              supCookie.remove WX_OPEN_SID_COOKIE
             catch e
               console.error e
             if typeof failed is 'function'
               failed(error)
 
       unlink: (success, failed)->
-        wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE_NAME
+        wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE
         do_request
           url: api_wx_link+'/'+wx_open_sid
           type: 'DELETE'
-          token: supCookie.get TOKEN_COOKIE_NAME
+          token: supCookie.get TOKEN_COOKIE
         , (data)->
             try
-              supCookie.remove WX_LINK_COOKIE_NAME
+              supCookie.remove WX_LINK_COOKIE
             catch e
               console.error e
             if typeof success is 'function'
               success(data)
         , failed
       link: (success, failed)->
-        wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE_NAME
+        wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE
         do_request
           url: api_wx_link
           type: 'POST'
           data:
             open_sid: wx_open_sid
-          token: supCookie.get TOKEN_COOKIE_NAME
+          token: supCookie.get TOKEN_COOKIE
         , (data)->
             try
-              supCookie.set WX_LINK_COOKIE_NAME, data, options.expires
+              supCookie.set WX_LINK_COOKIE, data, options.expires
             catch e
               console.error e
             if typeof success is 'function'
               success(data)
         , failed
 
-    get_token: ->
-      return supCookie.get TOKEN_COOKIE_NAME
+      clean: ->
+        supCookie.remove WX_OPEN_SID_COOKIE
+        supCookie.remove WX_LINK_COOKIE
 
-    get_open_id: ->
-      return supCookie.get OPEN_ID_COOKIE_NAME
+    token: (token)->
+      if token in [null, false]
+        try
+          supCookie.remove TOKEN_COOKIE
+        catch e
+          console.error e
+          return false
 
-    set_token: (token)->
-      if not token
-        return false
-      try
-        supCookie.set TOKEN_COOKIE_NAME, token, options.expires
-      catch e
-        console.error e
-        return false
-      return true
+      else if token
+        try
+          supCookie.set TOKEN_COOKIE, token, options.expires
+        catch e
+          console.error e
+          return false
 
-    set_open_id: (open_id)->
-      if not open_id
-        return false
-      try
-        supCookie.set OPEN_ID_COOKIE_NAME, open_id, options.expires
-      catch e
-        console.error e
-        return false
-      return true
+      return supCookie.get TOKEN_COOKIE
+
+
+    open_id: (open_id)->
+      if open_id in [null, false]
+        try
+          supCookie.remove OPEN_ID_COOKIE
+        catch e
+          console.error e
+          return false
+
+      else if open_id
+        try
+          supCookie.set OPEN_ID_COOKIE, open_id, options.expires
+        catch e
+          console.error e
+          return false
+
+      return supCookie.get OPEN_ID_COOKIE
 
     utils: utils
     version: version
+
   return member
 
 
