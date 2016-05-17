@@ -41,8 +41,8 @@ $(document).ready(function() {
   // Login
   $('#login-form').submit(function(e) {
     member.login({
-      log: $(this).find('[name="log"]').val(),
-      pwd: $(this).find('[name="pwd"]').val()
+      login: $(this).find('[name="log"]').val(),
+      passwd: $(this).find('[name="pwd"]').val()
     }).then(function(data) {
       console.log('success:', data);
       window.location.href = 'index.html';
@@ -59,10 +59,15 @@ $(document).ready(function() {
   // Register
 
   $('#register-new-form').submit(function(e) {
+    var passwd = $(this).find('[name="pwd"]').val();
+    var passwd2 = $(this).find('[name="pwd2"]').val();
+    if(passwd != passwd2){
+      console.log('Confirm password not match');
+      return
+    }
     member.register({
-      log: $(this).find('[name="log"]').val(),
-      pwd: $(this).find('[name="pwd"]').val(),
-      pwd2: $(this).find('[name="pwd2"]').val(),
+      login: $(this).find('[name="log"]').val(),
+      passwd: $(this).find('[name="pwd"]').val(),
       name: $(this).find('[name="name"]').val(),
       email: $(this).find('[name="email"]').val(),
       mobile: $(this).find('[name="mobile"]').val(),
@@ -130,16 +135,15 @@ $(document).ready(function() {
   });
 
   $('#pwd-form').submit(function(e) {
-    var pwd = $(this).find('[name="pwd"]').val()
-    var pwd2 = $(this).find('[name="pwd2"]').val()
-    if(pwd != pwd2){
+    var passwd = $(this).find('[name="pwd"]').val()
+    var passwd2 = $(this).find('[name="pwd2"]').val()
+    if(passwd != passwd2){
       console.log('New password not match');
       return
     }
     member.pwd({
-      opwd: $(this).find('[name="opwd"]').val(),
-      pwd: $(this).find('[name="pwd"]').val(),
-      pwd2: $(this).find('[name="pwd2"]').val(),
+      old_passwd: $(this).find('[name="opwd"]').val(),
+      passwd: $(this).find('[name="pwd"]').val(),
     }, function(data) {
       console.log('success:', data);
     }, function(error) {
