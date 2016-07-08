@@ -17,11 +17,29 @@
 	<title>Sup Member login</title>
 </head>
 <body>
-  <div id="applyments"></div>
+  <form id="create-free-demand-form">
+    <h4>Create demand</h4>
+    <p>
+      <label for="radio_free">Free</label>
+      <input type="hidden" name="event" value="test"/>
+      <br>
+      <small>
+        event slug is given by a hidden input here. ('test')
+      </small>
+    </p>
+    <p>
+    	Name:
+    	<input type="text" name="name" title="input your name">
+    </p>
+    <p>
+    	Message
+    	<textarea name="message" rows="6"></textarea>
+    </p>
+    <input type="submit" value="make demand"/>
+  </form>
   <p>
     <a href="index.html">Back</a>
   </p>
-<p><input type="submit" id="logout" value="logout"/></p>
 <!-- JS -->
 <script src="scripts/libs/jquery.min.js"></script>
 <!-- build:js scripts/libs/skipper.min.js -->

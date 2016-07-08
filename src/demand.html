@@ -2,12 +2,12 @@
 <html lang="en">
 {% include '_head_.html' %}
 <body>
-  <div id="applyments">
-    
+  <div id="demands">
+
   </div>
-  
-  <form id="create-apply-form">
-    <h4>Create apply</h4>
+
+  <form id="create-demand-form">
+    <h4>Create demand</h4>
     <p>
       <input type="radio" name="free" id="radio_free" value="1"/>
         <label for="radio_free">Free</label>
@@ -20,8 +20,8 @@
     </p>
     <p>
     	Activity ID:
-    	<input disabled type="text" name="act_id" 
-             title="input your activity id"/>
+    	<input disabled type="text" name="demand_id"
+             title="input your event id"/>
     </p>
     <p>
     	Message
@@ -33,10 +33,10 @@
       <br>
       <small>Promo is given by the owner, it's optional.</small>
     </p>
-    <input type="submit" value="make applyment"/>
+    <input type="submit" value="make demand"/>
   </form>
   <p>
-    <a href="applyments.html">My Applyments</a>
+    <a href="demands.html">My Demands</a>
     &nbsp;
     <a href="index.html">Back</a>
   </p>

@@ -2,14 +2,14 @@
 <html lang="en">
 {% include '_head_.html' %}
 <body>
-  <form id="create-free-apply-form">
-    <h4>Create apply</h4>
+  <form id="create-free-demand-form">
+    <h4>Create demand</h4>
     <p>
       <label for="radio_free">Free</label>
-      <input type="hidden" name="activity" value="test"/>
+      <input type="hidden" name="event" value="test"/>
       <br>
       <small>
-        activity alias is given by a hidden input here. ('test')
+        event slug is given by a hidden input here. ('test')
       </small>
     </p>
     <p>
@@ -20,13 +20,7 @@
     	Message
     	<textarea name="message" rows="6"></textarea>
     </p>
-    <p id="code">
-      Promo Code:
-      <input type="text" name="code" title="input promo code here"/>
-      <br>
-      <small>Promo is given by the owner, it's optional.</small>
-    </p>
-    <input type="submit" value="make applyment"/>
+    <input type="submit" value="make demand"/>
   </form>
   <p>
     <a href="index.html">Back</a>

@@ -4,7 +4,7 @@
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
 
-version = '1.2.2'
+version = '1.3.0'
 
 TOKEN_COOKIE = 'sup_member_auth'
 OPEN_ID_COOKIE = 'sup_member_open_id'
@@ -12,7 +12,7 @@ PROFILE_COOKIE = 'sup_member_profile'
 WX_OPEN_SID_COOKIE = 'sup_wx_open_sid'
 WX_LINK_COOKIE = 'sup_wx_link'
 
-WX_OPEN_SID = 'wx_open_sid'
+PARAM_WX_OPEN_SID = 'wx_open_sid'
 
 Q = root.Q.noConflict()
 
@@ -83,7 +83,7 @@ default_options =
   withCredentials: false
   expires: 1000*3600*24
 
-root.SupMember = (opts) ->
+root.Skipper = (opts) ->
   options = default_options
   for k,v of opts
     options[k] = v
@@ -106,16 +106,9 @@ root.SupMember = (opts) ->
     throw 'App not found!'
     return
 
-  request_types = [
-    'POST'
-    'GET'
-    'DELETE'
-    'PUT'
-  ]
-
 
   # process wx member link
-  wx_open_sid = utils.getParam(WX_OPEN_SID)
+  wx_open_sid = utils.getParam(PARAM_WX_OPEN_SID)
 
   if wx_open_sid
     try
@@ -285,24 +278,10 @@ root.SupMember = (opts) ->
           console.error e
           return false
 
-    activity:
-      query: (success, failed)->
-        do_request
-          url: api_open + '/activity'
-          type: 'GET'
-        , success
-        , failed
-      get: (id_or_alias, success, failed)->
-        do_request
-          url: api_open + '/activity/' + id_or_alias
-          type: 'GET'
-        , success
-        , failed
-
-    apply:
+    demand:
       free: (data, success, failed)->
         do_request
-          url: api_open + '/applyment'
+          url: api_open + '/demand'
           type: 'POST'
           data: data
         , success
@@ -310,7 +289,7 @@ root.SupMember = (opts) ->
 
       query: (success, failed)->
         do_request
-          url: api_member + '/applyment'
+          url: api_member + '/demand'
           type: 'GET'
           token: supCookie.get TOKEN_COOKIE
         , success
@@ -318,7 +297,7 @@ root.SupMember = (opts) ->
 
       create: (data, success, failed)->
         do_request
-          url: api_member + '/applyment'
+          url: api_member + '/demand'
           type: 'POST'
           data: data
           token: supCookie.get TOKEN_COOKIE
@@ -327,28 +306,14 @@ root.SupMember = (opts) ->
 
       remove: (key, success, failed)->
         do_request
-          url: api_member + '/applyment/' + key
+          url: api_member + '/demand/' + key
           type: 'DELETE'
           token: supCookie.get TOKEN_COOKIE
         , success
         , failed
 
     wxlink:
-      open_sid: (sid)->
-        if token in [null, false]
-          try
-            supCookie.remove WX_OPEN_SID_COOKIE
-          catch e
-            console.error e
-            return false
-
-        else if token
-          try
-            supCookie.set WX_OPEN_SID_COOKIE, sid, options.expires
-          catch e
-            console.error e
-            return false
-
+      open_sid: ->
         return supCookie.get WX_OPEN_SID_COOKIE
 
       login: (success, failed)->

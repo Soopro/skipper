@@ -2,22 +2,22 @@ outer_path = [
   'login.html',
   'join.html',
   'register.html',
-  'create_applyment.html',
+  'create_demand.html',
   'recovery.html',
-  'free_apply.html'
+  'free_demand.html'
 ]
 
 
 $(document).ready(function() {
-  var member = new SupMember({
+  var member = new Skipper({
     apiBaseURL:'http://localhost:5000'
   });
 
   current_path = location.pathname.substr(1)
 
-  if(outer_path.indexOf(current_path) < 0 && !member.get_token()){
+  if(outer_path.indexOf(current_path) < 0 && !member.token()){
     window.location.href = 'login.html';
-  }else if(current_path == 'login.html' && member.get_token()){
+  }else if(current_path == 'login.html' && member.token()){
     window.location.href = 'index.html';
   }
 
@@ -41,8 +41,8 @@ $(document).ready(function() {
   // Login
   $('#login-form').submit(function(e) {
     member.login({
-      log: $(this).find('[name="log"]').val(),
-      pwd: $(this).find('[name="pwd"]').val()
+      login: $(this).find('[name="log"]').val(),
+      passwd: $(this).find('[name="pwd"]').val()
     }).then(function(data) {
       console.log('success:', data);
       window.location.href = 'index.html';
@@ -59,10 +59,15 @@ $(document).ready(function() {
   // Register
 
   $('#register-new-form').submit(function(e) {
+    var passwd = $(this).find('[name="pwd"]').val();
+    var passwd2 = $(this).find('[name="pwd2"]').val();
+    if(passwd != passwd2){
+      console.log('Confirm password not match');
+      return
+    }
     member.register({
-      log: $(this).find('[name="log"]').val(),
-      pwd: $(this).find('[name="pwd"]').val(),
-      pwd2: $(this).find('[name="pwd2"]').val(),
+      login: $(this).find('[name="log"]').val(),
+      passwd: $(this).find('[name="pwd"]').val(),
       name: $(this).find('[name="name"]').val(),
       email: $(this).find('[name="email"]').val(),
       mobile: $(this).find('[name="mobile"]').val(),
@@ -130,16 +135,15 @@ $(document).ready(function() {
   });
 
   $('#pwd-form').submit(function(e) {
-    var pwd = $(this).find('[name="pwd"]').val()
-    var pwd2 = $(this).find('[name="pwd2"]').val()
-    if(pwd != pwd2){
+    var passwd = $(this).find('[name="pwd"]').val()
+    var passwd2 = $(this).find('[name="pwd2"]').val()
+    if(passwd != passwd2){
       console.log('New password not match');
       return
     }
     member.pwd({
-      opwd: $(this).find('[name="opwd"]').val(),
-      pwd: $(this).find('[name="pwd"]').val(),
-      pwd2: $(this).find('[name="pwd2"]').val(),
+      old_passwd: $(this).find('[name="opwd"]').val(),
+      passwd: $(this).find('[name="pwd"]').val(),
     }, function(data) {
       console.log('success:', data);
     }, function(error) {
@@ -148,81 +152,39 @@ $(document).ready(function() {
     return false;
   });
 
-  // Activity
-  if($('#activities').length > 0){
-    member.activity.query(function(data) {
-      console.log('success:', data);
-      for(var i=0; i<data.length; i++){
-        var act = data[i];
-        $('#activities').append(
-          [
-            '<p>',
-            'Alias: '+act.alias+'<br>',
-            'Title: '+act.title+'<br>',
-            'Time: '+act.time+'<br>',
-            'Location: '+act.location+'<br>',
-            'Member Verify: '+(act.permit==1)+'<br>',
-            'Update: '+new Date(act.updated*1000)+'<br>',
-            '</p>',
-            '<a href="apply.html?act_id='+act.id+'">Apply</a>',
-            '<hr>'
-          ].join('')
-        )
-      }
-    }, function(error) {
-      console.log('failed:', error.data);
-    });
-  }
-
-  if($('#activity').length > 0){
-    alias = $('#activity').attr('alias') || $('#activity').data('alias');
-    member.activity.get(alias
-    , function(data) {
-      console.log('success:', data);
-    }, function(error) {
-      console.log('failed:', error.data);
-    });
-  }
-
-  // Applayment
-  function add_apply(apply){
-    $('#applyments').prepend(
+  // Demand
+  function render_demand(demand){
+    $('#demands').prepend(
       [
-       '<div id='+apply.id+'>',
+       '<div id='+demand.id+'>',
        '<p>',
-       'Name: '+apply.name+'<br>',
-       'Message: '+apply.message+'<br>',
-       'member: '+Boolean(apply.member_id)+'<br>',
-       'Update: '+new Date(apply.updated*1000)+'<br>',
+       'Name: '+demand.name+'<br>',
+       'Message: '+demand.message+'<br>',
+       'member: '+Boolean(demand.member_id)+'<br>',
+       'Update: '+new Date(demand.updated*1000)+'<br>',
        '</p>',
-       '<button name="cancel_apply" apply-id="'+apply.id+'">Cancel</button>',
+       '<button name="cancel_demand" demand-id="'+demand.id+'">',
+       'Cancel',
+       '</button>',
        '<hr>',
        '<div>'
       ].join('')
     )
   }
-  function show_applyments(applyments) {
-    $('#applyments').html('');
-    var act_id = member.utils.getParam('act_id');
-    for(var i=0; i<applyments.length; i++){
-      var apply = applyments[i];
-      if(act_id && apply.activity_id != act_id){
-        continue
-      }
-      if(apply.canceled){
-        continue
-      }
-      add_apply(apply);
+  function show_demand_list(demands) {
+    $('#demands').html('');
+    for(var i=0; i < demands.length; i++){
+      render_demand(demands[i]);
     }
 
-    $('button[name="cancel_apply"]').click(function(e){
-      var apply_id = $(this).attr('apply-id') || $(this).data('apply-id');
-      if(apply_id){
-        member.apply.remove(apply_id
+    $('button[name="cancel_demand"]').click(function(e){
+      var demand_id = $(this).attr('demand-id') || $(this).data('demand-id');
+      if(demand_id){
+        member.demand.remove(demand_id
         , function(data) {
           console.log('success:', data);
-          $('#applyments').children().each(function(e){
-            if($(this).attr('id') == apply_id){
+          $('#demands').children().each(function(e){
+            if($(this).attr('id') == demand_id){
               $(this).remove()
             }
           });
@@ -234,58 +196,55 @@ $(document).ready(function() {
     });
   }
 
-
-  if($('#applyments').length > 0){
-    member.apply.query(function(data) {
+  if($('#demands').length > 0){
+    member.demand.query(function(data) {
       console.log('success:', data);
-      show_applyments(data);
+      show_demand_list(data);
     }, function(error) {
       console.log('failed:', error.data);
     });
   }
 
-  if($('#create-apply-form').length > 0){
-    var act_id = member.utils.getParam('act_id');
-    $(this).find('[name="act_id"]').val(act_id);
+  if($('#create-demand-form').length > 0){
     member.profile.get(function(profile) {
-      $('#create-apply-form').find('[name="name"]').val(profile.name);
+      $('#create-demand-form').find('[name="name"]').val(profile.name);
     });
   }
 
-  $('#create-apply-form').submit(function(e) {
+  $('#create-demand-form').submit(function(e) {
     var free_mode = $(this).find('[name="free"]:checked').val();
     var create_func;
     if(free_mode == 1){
-      create_func = member.apply.free
+      create_func = member.demand.free
     }else{
-      create_func = member.apply.create
+      create_func = member.demand.create
     }
     create_func({
       name: $(this).find('[name="name"]').val(),
-      activity_id: $(this).find('[name="act_id"]').val(),
-      message: $(this).find('[name="message"]').val(),
-      code: $(this).find('[name="code"]').val(),
-      meta: {}
+      event_id: $(this).find('[name="demand_id"]').val(),
+      meta: {
+        message: $(this).find('[name="message"]').val()
+      }
     }, function(data) {
       console.log('success:', data);
-      add_apply(data);
+      render_demand(data);
     }, function(error) {
       console.log('failed:', error.data);
     });
     return false;
   });
 
-  $('#create-free-apply-form').submit(function(e) {
+  $('#create-free-demand-form').submit(function(e) {
 
-    member.apply.free({
+    member.demand.free({
       name: $(this).find('[name="name"]').val(),
-      activity_alias: $(this).find('[name="activity"]').val(),
-      message: $(this).find('[name="message"]').val(),
-      code: $(this).find('[name="code"]').val(),
-      meta: {}
+      event_slug: $(this).find('[name="event"]').val(),
+      meta: {
+        message: $(this).find('[name="message"]').val()
+      }
     }, function(data) {
       console.log('success:', data);
-      add_apply(data);
+      render_demand(data);
     }, function(error) {
       console.log('failed:', error.data);
     });
@@ -293,7 +252,7 @@ $(document).ready(function() {
   });
 
   // wxlink
-  if(member.get_token() && member.wxlink.get_open_sid()){
+  if(member.token() && member.wxlink.open_sid()){
     member.wxlink.get(function(data){
       if(data.token){
         $('#wx-unlink-btn').show();
@@ -325,11 +284,11 @@ $(document).ready(function() {
   });
 
   // automatic login by wechat openid
-  if(!member.get_token() && member.wxlink.get_open_sid()){
+  if(!member.token() && member.wxlink.open_sid()){
     console.log('Try use WX open id to login')
     member.wxlink.login(function(data){
       console.log(data);
-      if(member.get_token()){
+      if(member.token()){
         window.location.href = 'index.html';
       }
     }, function(error){

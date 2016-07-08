@@ -17,35 +17,11 @@
 	<title>Sup Member login</title>
 </head>
 <body>
-  <form id="create-free-apply-form">
-    <h4>Create apply</h4>
-    <p>
-      <label for="radio_free">Free</label>
-      <input type="hidden" name="activity" value="test"/>
-      <br>
-      <small>
-        activity alias is given by a hidden input here. ('test')
-      </small>
-    </p>
-    <p>
-    	Name:
-    	<input type="text" name="name" title="input your name">
-    </p>
-    <p>
-    	Message
-    	<textarea name="message" rows="6"></textarea>
-    </p>
-    <p id="code">
-      Promo Code:
-      <input type="text" name="code" title="input promo code here"/>
-      <br>
-      <small>Promo is given by the owner, it's optional.</small>
-    </p>
-    <input type="submit" value="make applyment"/>
-  </form>
+  <div id="demands"></div>
   <p>
     <a href="index.html">Back</a>
   </p>
+<p><input type="submit" id="logout" value="logout"/></p>
 <!-- JS -->
 <script src="scripts/libs/jquery.min.js"></script>
 <!-- build:js scripts/libs/skipper.min.js -->
