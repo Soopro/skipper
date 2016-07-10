@@ -75,6 +75,23 @@ utils =
     else
       return query_args
 
+  isNode: (o) ->
+    if typeof Node == 'object'
+      return o instanceof Node
+    else if o and typeof o == 'object'
+      return (typeof o.nodeType == 'number' and typeof o.nodeName == 'string')
+    else
+      return false
+
+  isElement: (o) ->
+    if typeof HTMLElement == 'object'
+      return o instanceof HTMLElement
+    else if o and typeof o == 'object' and o != null
+      return (o.nodeType == 1 and typeof o.nodeName == 'string')
+    else
+      return false
+
+
 
 default_options =
   apiBaseURL: 'http://api.soopro.com'
@@ -169,7 +186,7 @@ root.Skipper = (opts) ->
   api = options.apiBaseURL
   api_open = api + '/crm/entr/' + app_id + '/visitor'
   api_member = api + '/crm/entr/' + app_id + '/member'
-  api_wx_link = api+'/wx/link_member'
+  api_wx_link = api + '/wx/link_member'
 
   member =
     request: (request, success, failed)->
@@ -279,6 +296,42 @@ root.Skipper = (opts) ->
           return false
 
     demand:
+      fields: (form_element)->
+        try
+          elems = form_element.querySelectorAll('[field]')
+        catch e
+          console.error e
+          return false
+
+        parse_field = (el)->
+          if el.tagName == 'SELECT'
+            if el.hasAttribute('multiple')
+              value = ((opt.value or opt.text) for opt in el.options \
+                                               when opt.selected)
+            else
+              value = el.options[el.selectedIndex or 0].value
+          else if el.getAttribute('type') in ['radio', 'checkbox']
+            checked = el.querySelectorAll(':checked')
+            if checked.length > 1
+              value = (item.value for item in checked)
+            else if checked.length == 1
+              value = checked[0].value
+            else
+              value = undefined
+          else
+            value = el.value
+
+          return {
+            "key": el.getAttribute('name')
+            "label": el.getAttribute('label')
+            "value": value
+          }
+
+        fields = (parse_field(elem) for elem in elems)
+
+        return fields
+
+
       free: (data, success, failed)->
         do_request
           url: api_open + '/demand'

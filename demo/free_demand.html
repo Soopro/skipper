@@ -18,10 +18,9 @@
 </head>
 <body>
   <form id="create-free-demand-form">
-    <h4>Create demand</h4>
+    <h4>Create free demand</h4>
     <p>
-      <label for="radio_free">Free</label>
-      <input type="hidden" name="event" value="test"/>
+      <input type="hidden" name="event" value="test" required />
       <br>
       <small>
         event slug is given by a hidden input here. ('test')
@@ -29,11 +28,64 @@
     </p>
     <p>
     	Name:
-    	<input type="text" name="name" title="input your name">
+    	<input type="text"
+             name="name"
+             label="Name"
+             required>
+    </p>
+    <p>
+    	Sex:
+      <div name="xxx"
+           type="radio"
+           label="Sex"
+           field>
+        <input type="radio" name="gender" value="male"> Male<br>
+        <input type="radio" name="gender" value="female"> Female<br>
+        <input type="radio" name="gender" value="other" checked> Other
+      </div>
+    </p>
+    <p>
+    	I Like:
+      <div name="like"
+           type="checkbox"
+           label="I Like"
+           field>
+        <input type="checkbox" name="food" value="Milk"> Milk<br>
+        <input type="checkbox" name="food" value="Butter"> Butter<br>
+        <input type="checkbox" name="food" value="Cheese"> Cheese<br>
+      </div>
+    </p>
+    <p>
+    	Fuck:
+      <select name="fuck"
+              label="Fuck"
+              field>
+          <option value="1">Breakfast</option>
+          <option value="2">Lunch</option>
+          <option value="3">Dinner</option>
+          <option value="4">Snacks</option>
+          <option value="5">Dessert</option>
+      </select>
+    </p>
+    <p>
+    	Class Type:
+      <select name="type"
+              label="Class Type"
+              multiple
+              field>
+          <option value="1">Breakfast</option>
+          <option value="2">Lunch</option>
+          <option value="3">Dinner</option>
+          <option value="4">Snacks</option>
+          <option value="5">Dessert</option>
+      </select>
     </p>
     <p>
     	Message
-    	<textarea name="message" rows="6"></textarea>
+    	<textarea name="message"
+                label="Message"
+                rows="6"
+                field></textarea>
     </p>
     <input type="submit" value="make demand"/>
   </form>

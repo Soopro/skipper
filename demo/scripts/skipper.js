@@ -89,6 +89,24 @@
       } else {
         return query_args;
       }
+    },
+    isNode: function(o) {
+      if (typeof Node === 'object') {
+        return o instanceof Node;
+      } else if (o && typeof o === 'object') {
+        return typeof o.nodeType === 'number' && typeof o.nodeName === 'string';
+      } else {
+        return false;
+      }
+    },
+    isElement: function(o) {
+      if (typeof HTMLElement === 'object') {
+        return o instanceof HTMLElement;
+      } else if (o && typeof o === 'object' && o !== null) {
+        return o.nodeType === 1 && typeof o.nodeName === 'string';
+      } else {
+        return false;
+      }
     }
   };
 
@@ -332,6 +350,71 @@
         }
       },
       demand: {
+        fields: function(form_element) {
+          var elem, elems, error2, fields, parse_field;
+          try {
+            elems = form_element.querySelectorAll('[field]');
+          } catch (error2) {
+            e = error2;
+            console.error(e);
+            return false;
+          }
+          parse_field = function(el) {
+            var checked, item, opt, ref, value;
+            if (el.tagName === 'SELECT') {
+              if (el.hasAttribute('multiple')) {
+                value = (function() {
+                  var l, len1, ref, results;
+                  ref = el.options;
+                  results = [];
+                  for (l = 0, len1 = ref.length; l < len1; l++) {
+                    opt = ref[l];
+                    if (opt.selected) {
+                      results.push(opt.value || opt.text);
+                    }
+                  }
+                  return results;
+                })();
+              } else {
+                value = el.options[el.selectedIndex || 0].value;
+              }
+            } else if ((ref = el.getAttribute('type')) === 'radio' || ref === 'checkbox') {
+              checked = el.querySelectorAll(':checked');
+              if (checked.length > 1) {
+                value = (function() {
+                  var l, len1, results;
+                  results = [];
+                  for (l = 0, len1 = checked.length; l < len1; l++) {
+                    item = checked[l];
+                    results.push(item.value);
+                  }
+                  return results;
+                })();
+              } else if (checked.length === 1) {
+                value = checked[0].value;
+              } else {
+                value = void 0;
+              }
+            } else {
+              value = el.value;
+            }
+            return {
+              "key": el.getAttribute('name'),
+              "label": el.getAttribute('label'),
+              "value": value
+            };
+          };
+          fields = (function() {
+            var l, len1, results;
+            results = [];
+            for (l = 0, len1 = elems.length; l < len1; l++) {
+              elem = elems[l];
+              results.push(parse_field(elem));
+            }
+            return results;
+          })();
+          return fields;
+        },
         free: function(data, success, failed) {
           return do_request({
             url: api_open + '/demand',

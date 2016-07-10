@@ -235,13 +235,13 @@ $(document).ready(function() {
   });
 
   $('#create-free-demand-form').submit(function(e) {
-
+    e.preventDefault();
+    var name = $(this).find('[name="name"]').val();
+    var event_slug = $(this).find('[name="event"]').val();
     member.demand.free({
-      name: $(this).find('[name="name"]').val(),
-      event_slug: $(this).find('[name="event"]').val(),
-      meta: {
-        message: $(this).find('[name="message"]').val()
-      }
+      name: name,
+      event_slug: event_slug,
+      fields: member.demand.fields(this)
     }, function(data) {
       console.log('success:', data);
       render_demand(data);
