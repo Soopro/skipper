@@ -241,7 +241,7 @@ $(document).ready(function() {
     member.demand.free({
       name: name,
       event_slug: event_slug,
-      fields: member.demand.fields(this)
+      fields: member.fields(this)
     }, function(data) {
       console.log('success:', data);
       render_demand(data);

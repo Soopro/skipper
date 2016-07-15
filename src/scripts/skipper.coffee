@@ -4,7 +4,7 @@
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
 
-version = '1.3.0'
+version = '1.4.1'
 
 TOKEN_COOKIE = 'sup_member_auth'
 OPEN_ID_COOKIE = 'sup_member_open_id'
@@ -295,42 +295,45 @@ root.Skipper = (opts) ->
           console.error e
           return false
 
-    demand:
-      fields: (form_element)->
-        try
-          elems = form_element.querySelectorAll('[field]')
-        catch e
-          console.error e
-          return false
+    fields: (form_element)->
+      try
+        elems = form_element.querySelectorAll('[field]')
+      catch e
+        console.error e
+        return false
 
-        parse_field = (el)->
-          if el.tagName == 'SELECT'
-            if el.hasAttribute('multiple')
-              value = ((opt.value or opt.text) for opt in el.options \
-                                               when opt.selected)
-            else
-              value = el.options[el.selectedIndex or 0].value
-          else if el.getAttribute('type') in ['radio', 'checkbox']
-            checked = el.querySelectorAll(':checked')
-            if checked.length > 1
-              value = (item.value for item in checked)
-            else if checked.length == 1
-              value = checked[0].value
-            else
-              value = undefined
+      parse_field = (el)->
+        field_type = el.getAttribute('field')
+        if field_type == 'select'
+          value = el.options[el.selectedIndex or 0].value
+
+        else if field_type == 'multi-select'
+          value = ((opt.value or opt.text) for opt in el.options \
+                                           when opt.selected)
+
+        else if field_type in ['radio', 'checkbox']
+          checked = el.querySelectorAll(':checked')
+          if checked.length > 1
+            value = (item.value for item in checked)
+          else if checked.length == 1
+            value = checked[0].value
           else
-            value = el.value
+            value = undefined
 
-          return {
-            "key": el.getAttribute('name')
-            "label": el.getAttribute('label')
-            "value": value
-          }
+        else
+          value = el.value
 
-        fields = (parse_field(elem) for elem in elems)
+        return {
+          "name": el.getAttribute('name')
+          "label": el.getAttribute('label')
+          "value": value
+        }
 
-        return fields
+      fields = (parse_field(elem) for elem in elems)
 
+      return fields
+
+    demand:
 
       free: (data, success, failed)->
         do_request
