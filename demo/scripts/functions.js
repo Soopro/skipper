@@ -214,7 +214,7 @@ $(document).ready(function() {
         $(self).find('[name="subject"]').val(profile.name);
       });
       create_demand_func = member.demand.create;
-    }else {
+    } else {
       create_demand_func = member.demand.free;
     }
     var form_data = member.parse_form(self);
@@ -222,10 +222,19 @@ $(document).ready(function() {
       console.log(form_data.fields);
       return false;
     }
+    var results_success = $(self).find('.results .success');
+    var results_error = $(self).find('.results .error');
+    results_success.hide();
+    results_error.hide();
+
+    $(self).find('.results .success').hide();
     create_demand_func(form_data, function(data) {
       console.log('success:', data);
+      results_success.show();
       render_demand(data);
     }, function(error) {
+      results_error.html(error.data.errmsg);
+      results_error.show();
       console.log('failed:', error.data);
     });
     return false;
