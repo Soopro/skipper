@@ -295,14 +295,21 @@ root.Skipper = (opts) ->
           console.error e
           return false
 
-    fields: (form_element)->
+    fields: (form_element, skips)->
       try
         elems = form_element.querySelectorAll('[field]')
       catch e
         console.error e
         return false
+      if not skips
+        skips = []
+      else if typeof(skips) == 'string'
+        skips = [skips]
 
       parse_field = (el)->
+        name = el.getAttribute('name') or Date.now().toString()
+        label = el.getAttribute('label') or ''
+
         field_type = el.getAttribute('field')
         if field_type == 'select'
           value = el.options[el.selectedIndex or 0].value
@@ -321,20 +328,47 @@ root.Skipper = (opts) ->
             value = undefined
 
         else
-          value = el.value
+          value = el.value or el.text
 
         return {
-          "name": el.getAttribute('name')
-          "label": el.getAttribute('label')
-          "value": value
+          "name": name.trim()
+          "label": label.trim()
+          "value": value or ''
         }
 
-      fields = (parse_field(elem) for elem in elems)
+      invalid_fields = []
+      data_fields = []
+      for elem in elems
+        if elem.getAttribute('name') in skips
+          continue
+        data = parse_field(elem)
+        msgs = form_element.querySelectorAll('.messages[for="'+data.name+'"]')
+        for msg in msgs
+          msg.style.display = 'none'
+        if elem.hasAttribute('required') and data.value.length <= 0
+          for msg in msgs
+            msg.style.display = 'block'
+          invalid_fields.push data
+        data_fields.push data
 
-      return fields
+      status = if invalid_fields.length > 0 then 0 else 1
+
+      return {
+        "data": if status then data_fields else invalid_fields
+        "status": status
+      }
+
+    mailto: (action, subject, mail_fields)->
+      action = action.split("?")[0].split('#')[0]
+      subject = encodeURIComponent(subject)
+      mail_content = ''
+      for field in mail_fields
+        mail_content = mail_content+field.label+': '+field.value+'\n'
+      mail_content = encodeURIComponent(mail_content) or ''
+      mail_data = action+'?subject='+subject+'&body='+mail_content
+      return mail_data
 
     demand:
-
       free: (data, success, failed)->
         do_request
           url: api_open + '/demand'

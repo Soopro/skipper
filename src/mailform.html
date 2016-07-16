@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include '_head_.html' %}
+<body>
+  <form action="mailto:you@yourdmainhere.com"
+        type="mailto">
+    <p>
+      Subject:<input type="text"
+                     name="subject"
+                     label="Subject"
+                     field="text">
+    </p>
+    <p>
+    Select:
+    <select name="select"
+            label="Selection"
+            field="select">
+      <option value="is_select">Sel</option>
+      <option value="is_not_select">noSel</option>
+    </select>
+    </p>
+    <p>
+    Multi Select:
+    <select name="multi-select"
+            label="Multi Selection"
+            field="multi-select"
+            required
+            multiple>
+      <option value="is_select">Sel</option>
+      <option value="is_not_select">noSel</option>
+    </select>
+    <div class="messages" for="multi-select" style="display:none;">
+      It's required!!
+    </div>
+    </p>
+    <p field="checkbox"
+       label="Checkbox">
+    Checkbox:
+    <label>
+      <input type="checkbox" title="Enable JavaScript" value="yes" checked/>
+      Enable JavaScript
+    </label>
+    <input type="checkbox" title="Enable Java" value="true" />
+    </p>
+    <p field="radio"
+       label="Radio">
+    Radio:
+    <label>
+      <input type="radio" name="sex" title="Sex" value="Female"> Female
+    </label>
+    <label>
+      <input type="radio" name="sex" title="Sex" value="Male"> Male
+    </label>
+    </p>
+    <p>
+    Message:<textarea field="textarea"
+                      label="Message"></textarea>
+    </p>
+    <p>
+    <input type="submit" value="Submit">
+    </p>
+  </form>
+  <p>
+    <a href="index.html">Back</a>
+  </p>
+{% include '_js_.html' %}
+</body>
+</html>

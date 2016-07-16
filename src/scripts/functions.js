@@ -4,7 +4,8 @@ outer_path = [
   'register.html',
   'create_demand.html',
   'recovery.html',
-  'free_demand.html'
+  'free_demand.html',
+  'mailform.html'
 ]
 
 
@@ -219,12 +220,10 @@ $(document).ready(function() {
     }else{
       create_func = member.demand.create
     }
+    var action = this.action.trim();
     create_func({
-      name: $(this).find('[name="name"]').val(),
-      event_id: $(this).find('[name="demand_id"]').val(),
-      meta: {
-        message: $(this).find('[name="message"]').val()
-      }
+      event_slug: action,
+      fields: member.fields(this)
     }, function(data) {
       console.log('success:', data);
       render_demand(data);
@@ -236,18 +235,35 @@ $(document).ready(function() {
 
   $('#create-free-demand-form').submit(function(e) {
     e.preventDefault();
-    var name = $(this).find('[name="name"]').val();
-    var event_slug = $(this).find('[name="event"]').val();
+    var action = this.action.trim();
+    var name = $(this).find('input[name="name"]').val();
+    var fields = member.fields(this, 'name');
+    if(!fields.status) {
+      return false;
+    }
     member.demand.free({
+      event_slug: action,
       name: name,
-      event_slug: event_slug,
-      fields: member.fields(this)
+      fields: fields.data
     }, function(data) {
       console.log('success:', data);
       render_demand(data);
     }, function(error) {
       console.log('failed:', error.data);
     });
+    return false;
+  });
+
+  $('form[type=mailto]').submit(function(e) {
+    e.preventDefault();
+    var action = this.action.trim();
+    var subject = $(this).find('input[name="subject"]').val();
+    var fields = member.fields(this, 'subject');
+    if(!fields.status) {
+      return false;
+    }
+    var mail_data = member.mailto(action, subject, fields.data);
+    window.location.href = mail_data;
     return false;
   });
 
