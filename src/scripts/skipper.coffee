@@ -75,6 +75,11 @@ utils =
     else
       return query_args
 
+  last_slash: (str, slash)->
+    if not slash
+      slash = '/'
+    return str.substring(str.lastIndexOf(slash) + 1, str.length)
+
   isNode: (o) ->
     if typeof Node == 'object'
       return o instanceof Node
@@ -298,7 +303,7 @@ root.Skipper = (opts) ->
     parse_form: (form_element)->
       try
         action = form_element.action or form_element.getAttribute('action')
-        action = action.trim()
+        action = utils.last_slash(action).trim()
         if typeof(action) isnt 'string' or not action
           throw 'Form action not found!'
         elems = form_element.querySelectorAll('[field]')

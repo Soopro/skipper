@@ -90,6 +90,12 @@
         return query_args;
       }
     },
+    last_slash: function(str, slash) {
+      if (!slash) {
+        slash = '/';
+      }
+      return str.substring(str.lastIndexOf(slash) + 1, str.length);
+    },
     isNode: function(o) {
       if (typeof Node === 'object') {
         return o instanceof Node;
@@ -353,7 +359,7 @@
         var _get_field, action, data, data_fields, elem, elems, error2, invalid_fields, l, len1, len2, len3, m, msg, msgs, n, status;
         try {
           action = form_element.action || form_element.getAttribute('action');
-          action = action.trim();
+          action = utils.last_slash(action).trim();
           if (typeof action !== 'string' || !action) {
             throw 'Form action not found!';
           }
