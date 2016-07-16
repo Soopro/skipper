@@ -22,7 +22,6 @@ $(document).ready(function() {
   }
 
   // Logout
-
   $('#logout').click(function(e) {
     member.logout()
     .then(function(data) {
@@ -72,7 +71,6 @@ $(document).ready(function() {
       email: $(this).find('[name="email"]').val(),
       mobile: $(this).find('[name="mobile"]').val(),
       avatar: $(this).find('[name="avatar"]').val(),
-      code: $(this).find('[name="code"]').val()
     }, function(data) {
       console.log('success:', data);
       $('#msgbox').html('You are registered! Go Login');
@@ -93,6 +91,7 @@ $(document).ready(function() {
     $('#profile').find('[member-email]').html(profile.email);
     $('#profile').find('[member-avatar]').html(profile.avatar);
     $('#profile').find('[member-mobile]').html(profile.mobile);
+    $('#profile').find('[member-status]').html(profile.status);
   }
   function show_profile_form(profile){
     $('#profile-form').find('[name="name"]').val(profile.name);
@@ -209,7 +208,7 @@ $(document).ready(function() {
     e.preventDefault();
     var self = this;
     var create_func;
-    if(member.token()){
+    if(member.open_id() && member.token()){
       member.profile.get(function(profile) {
         $(self).find('[name="subject"]').val(profile.name);
       });
