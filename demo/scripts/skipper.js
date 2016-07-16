@@ -349,16 +349,21 @@
           }
         }
       },
-      fields: function(form_element) {
-        var data, data_fields, elem, elems, error2, invalid_fields, l, len1, len2, len3, m, msg, msgs, n, parse_field, status;
+      parse_form: function(form_element) {
+        var _get_field, action, data, data_fields, elem, elems, error2, invalid_fields, l, len1, len2, len3, m, msg, msgs, n, status;
         try {
+          action = form_element.action || form_element.getAttribute('action');
+          action = action.trim();
+          if (typeof action !== 'string' || !action) {
+            throw 'Form action not found!';
+          }
           elems = form_element.querySelectorAll('[field]');
         } catch (error2) {
           e = error2;
           console.error(e);
           return false;
         }
-        parse_field = function(el) {
+        _get_field = function(el) {
           var checked, field_type, item, label, name, opt, value;
           name = el.getAttribute('name') || Date.now().toString();
           label = el.getAttribute('label') || '';
@@ -408,7 +413,7 @@
         data_fields = [];
         for (l = 0, len1 = elems.length; l < len1; l++) {
           elem = elems[l];
-          data = parse_field(elem);
+          data = _get_field(elem);
           msgs = form_element.querySelectorAll('[messages][for="' + data.name + '"], .messages[for="' + data.name + '"]');
           for (m = 0, len2 = msgs.length; m < len2; m++) {
             msg = msgs[m];
@@ -425,7 +430,8 @@
         }
         status = invalid_fields.length > 0 ? 0 : 1;
         return {
-          "data": status ? data_fields : invalid_fields,
+          "action": action,
+          "fields": status ? data_fields : invalid_fields,
           "status": status
         };
       },
@@ -434,7 +440,7 @@
         action = data.action.split("?")[0].split('#')[0];
         subject = '';
         mail_content = '';
-        ref = data.fields;
+        ref = data.fields || [];
         for (l = 0, len1 = ref.length; l < len1; l++) {
           field = ref[l];
           if (field.name === 'subject') {
@@ -451,9 +457,9 @@
         free: function(data, success, failed) {
           var event_slug, field, fields, l, len1, ref, subject;
           subject = '';
-          event_slug = data.event_slug;
+          event_slug = data.action;
           fields = [];
-          ref = data.feilds;
+          ref = data.fields || [];
           for (l = 0, len1 = ref.length; l < len1; l++) {
             field = ref[l];
             if (field.name === 'subject') {
@@ -468,7 +474,7 @@
             data: {
               event_slug: event_slug,
               subject: subject,
-              fields: feilds
+              fields: fields
             }
           }, success, failed);
         },
@@ -482,9 +488,9 @@
         create: function(data, success, failed) {
           var event_slug, field, fields, l, len1, ref, subject;
           subject = '';
-          event_slug = data.event_slug;
+          event_slug = data.action;
           fields = [];
-          ref = data.feilds;
+          ref = data.fields || [];
           for (l = 0, len1 = ref.length; l < len1; l++) {
             field = ref[l];
             if (field.name === 'subject') {
@@ -499,7 +505,7 @@
             data: {
               event_slug: event_slug,
               subject: subject,
-              fields: feilds
+              fields: fields
             },
             token: supCookie.get(TOKEN_COOKIE)
           }, success, failed);

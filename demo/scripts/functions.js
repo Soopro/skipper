@@ -2,9 +2,8 @@ outer_path = [
   'login.html',
   'join.html',
   'register.html',
-  'create_demand.html',
   'recovery.html',
-  'free_demand.html',
+  'demand.html',
   'mailform.html'
 ]
 
@@ -206,25 +205,24 @@ $(document).ready(function() {
     });
   }
 
-  if($('#create-demand-form').length > 0){
-    member.profile.get(function(profile) {
-      $('#create-demand-form').find('[name="name"]').val(profile.name);
-    });
-  }
-
-  $('#create-demand-form').submit(function(e) {
-    var free_mode = $(this).find('[name="free"]:checked').val();
+  $('form[type="event"]').submit(function(e) {
+    e.preventDefault();
+    var self = this;
     var create_func;
-    if(free_mode == 1){
-      create_func = member.demand.free
-    }else{
-      create_func = member.demand.create
+    if(member.token()){
+      member.profile.get(function(profile) {
+        $(self).find('[name="subject"]').val(profile.name);
+      });
+      create_demand_func = member.demand.create;
+    }else {
+      create_demand_func = member.demand.free;
     }
-    var action = this.action.trim();
-    create_func({
-      event_slug: action,
-      fields: member.fields(this)
-    }, function(data) {
+    var form_data = member.parse_form(self);
+    if(!form_data.status) {
+      console.log(form_data.fields);
+      return false;
+    }
+    create_demand_func(form_data, function(data) {
       console.log('success:', data);
       render_demand(data);
     }, function(error) {
@@ -233,36 +231,13 @@ $(document).ready(function() {
     return false;
   });
 
-  $('#create-free-demand-form').submit(function(e) {
+  $('form[type="mailto"]').submit(function(e) {
     e.preventDefault();
-    var action = this.action.trim();
-    var fields = member.fields(this);
-    if(!fields.status) {
+    var form_data = member.parse_form(this);
+    if(!form_data.status) {
       return false;
     }
-    member.demand.free({
-      event_slug: action,
-      fields: fields.data
-    }, function(data) {
-      console.log('success:', data);
-      render_demand(data);
-    }, function(error) {
-      console.log('failed:', error.data);
-    });
-    return false;
-  });
-
-  $('form[type=mailto]').submit(function(e) {
-    e.preventDefault();
-    var action = this.action.trim();
-    var fields = member.fields(this);
-    if(!fields.status) {
-      return false;
-    }
-    var mail_data = member.mailto({
-      action: action,
-      fields: fields.data
-    });
+    var mail_data = member.mailto(form_data);
     window.location.href = mail_data;
     return false;
   });

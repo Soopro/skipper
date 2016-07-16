@@ -295,14 +295,18 @@ root.Skipper = (opts) ->
           console.error e
           return false
 
-    fields: (form_element)->
+    parse_form: (form_element)->
       try
+        action = form_element.action or form_element.getAttribute('action')
+        action = action.trim()
+        if typeof(action) isnt 'string' or not action
+          throw 'Form action not found!'
         elems = form_element.querySelectorAll('[field]')
       catch e
         console.error e
         return false
 
-      parse_field = (el)->
+      _get_field = (el)->
         name = el.getAttribute('name') or Date.now().toString()
         label = el.getAttribute('label') or ''
 
@@ -335,7 +339,7 @@ root.Skipper = (opts) ->
       invalid_fields = []
       data_fields = []
       for elem in elems
-        data = parse_field(elem)
+        data = _get_field(elem)
         msgs = form_element.querySelectorAll(
           '[messages][for="'+data.name+'"], .messages[for="'+data.name+'"]')
         for msg in msgs
@@ -349,7 +353,8 @@ root.Skipper = (opts) ->
       status = if invalid_fields.length > 0 then 0 else 1
 
       return {
-        "data": if status then data_fields else invalid_fields
+        "action": action
+        "fields": if status then data_fields else invalid_fields
         "status": status
       }
 
@@ -357,7 +362,7 @@ root.Skipper = (opts) ->
       action = data.action.split("?")[0].split('#')[0]
       subject = ''
       mail_content = ''
-      for field in data.fields
+      for field in (data.fields or [])
         if field.name == 'subject'
           subject = field.value
         else
@@ -369,9 +374,9 @@ root.Skipper = (opts) ->
     demand:
       free: (data, success, failed)->
         subject = ''
-        event_slug = data.event_slug
+        event_slug = data.action
         fields = []
-        for field in data.feilds
+        for field in (data.fields or [])
           if field.name == 'subject'
             subject = field.value
           else
@@ -382,7 +387,7 @@ root.Skipper = (opts) ->
           data:
             event_slug: event_slug
             subject: subject
-            fields: feilds
+            fields: fields
         , success
         , failed
 
@@ -396,9 +401,9 @@ root.Skipper = (opts) ->
 
       create: (data, success, failed)->
         subject = ''
-        event_slug = data.event_slug
+        event_slug = data.action
         fields = []
-        for field in data.feilds
+        for field in (data.fields or [])
           if field.name == 'subject'
             subject = field.value
           else
@@ -409,7 +414,7 @@ root.Skipper = (opts) ->
           data:
             event_slug: event_slug
             subject: subject
-            fields: feilds
+            fields: fields
           token: supCookie.get TOKEN_COOKIE
         , success
         , failed

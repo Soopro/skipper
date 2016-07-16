@@ -17,45 +17,76 @@
 	<title>Sup Member login</title>
 </head>
 <body>
-  <div id="demands">
-
-  </div>
-
-  <form id="create-demand-form">
-    <h4>Create demand</h4>
-    <p>
-      <input type="radio" name="free" id="radio_free" value="1"/>
-        <label for="radio_free">Free</label>
-      <input type="radio" name="free" id="radio_member" value="0" checked/>
-        <label for="radio_member">Member</label>
-    </p>
+  <form type="event" action="test">
+    <h4>Create free demand</h4>
     <p>
     	Name:
-    	<input type="text" name="name" title="input your name">
+    	<input type="text"
+             field="text"
+             name="subject"
+             label="Name"
+             required>
     </p>
     <p>
-    	Activity ID:
-    	<input disabled type="text" name="demand_id"
-             title="input your event id"/>
+    	Sex:
+      <div name="xxx"
+           type="radio"
+           label="Sex"
+           field="xxx">
+        <input type="radio" name="gender" value="male"> Male<br>
+        <input type="radio" name="gender" value="female"> Female<br>
+        <input type="radio" name="gender" value="other" checked> Other
+      </div>
+    </p>
+    <p>
+    	I Like:
+      <div name="like"
+           type="checkbox"
+           label="I Like"
+           field="like">
+        <input type="checkbox" name="food" value="Milk"> Milk<br>
+        <input type="checkbox" name="food" value="Butter"> Butter<br>
+        <input type="checkbox" name="food" value="Cheese"> Cheese<br>
+      </div>
+    </p>
+    <p>
+    	Fuck:
+      <select name="fuck"
+              label="Fuck"
+              field="fuck">
+          <option value="1">Breakfast</option>
+          <option value="2">Lunch</option>
+          <option value="3">Dinner</option>
+          <option value="4">Snacks</option>
+          <option value="5">Dessert</option>
+      </select>
+    </p>
+    <p>
+    	Class Type:
+      <select name="type"
+              label="Class Type"
+              multiple
+              field="type">
+          <option value="1">Breakfast</option>
+          <option value="2">Lunch</option>
+          <option value="3">Dinner</option>
+          <option value="4">Snacks</option>
+          <option value="5">Dessert</option>
+      </select>
     </p>
     <p>
     	Message
-    	<textarea name="message" rows="6"></textarea>
-    </p>
-    <p id="code">
-      Promo Code:
-      <input type="text" name="code" title="input promo code here"/>
-      <br>
-      <small>Promo is given by the owner, it's optional.</small>
+    	<textarea name="message"
+                field="message"
+                label="Message"
+                rows="6"
+                ></textarea>
     </p>
     <input type="submit" value="make demand"/>
   </form>
   <p>
-    <a href="demands.html">My Demands</a>
-    &nbsp;
     <a href="index.html">Back</a>
   </p>
-<p><input type="submit" id="logout" value="logout"/></p>
 <!-- JS -->
 <script src="scripts/libs/jquery.min.js"></script>
 <!-- build:js scripts/libs/skipper.min.js -->
