@@ -295,16 +295,12 @@ root.Skipper = (opts) ->
           console.error e
           return false
 
-    fields: (form_element, skips)->
+    fields: (form_element)->
       try
         elems = form_element.querySelectorAll('[field]')
       catch e
         console.error e
         return false
-      if not skips
-        skips = []
-      else if typeof(skips) == 'string'
-        skips = [skips]
 
       parse_field = (el)->
         name = el.getAttribute('name') or Date.now().toString()
@@ -347,10 +343,7 @@ root.Skipper = (opts) ->
           for msg in msgs
             msg.style.display = 'block'
           invalid_fields.push data
-
-        # check skip after field processed, because it need validation.
-        if data.name not in skip
-          data_fields.push data
+        data_fields.push data
 
       status = if invalid_fields.length > 0 then 0 else 1
 
@@ -359,22 +352,36 @@ root.Skipper = (opts) ->
         "status": status
       }
 
-    mailto: (action, subject, mail_fields)->
-      action = action.split("?")[0].split('#')[0]
-      subject = encodeURIComponent(subject)
+    mailto: (data)->
+      action = data.action.split("?")[0].split('#')[0]
+      subject = ''
       mail_content = ''
-      for field in mail_fields
-        mail_content = mail_content+field.label+': '+field.value+'\n'
+      for field in data.fields
+        if field.name == 'subject'
+          subject = field.value
+        else
+          mail_content = mail_content+field.label+': '+field.value+'\n'
       mail_content = encodeURIComponent(mail_content) or ''
       mail_data = action+'?subject='+subject+'&body='+mail_content
       return mail_data
 
     demand:
       free: (data, success, failed)->
+        subject = ''
+        event_slug = data.event_slug
+        fields = []
+        for field in data.feilds
+          if field.name == 'subject'
+            subject = field.value
+          else
+            fields.push field
         do_request
           url: api_open + '/demand'
           type: 'POST'
-          data: data
+          data:
+            event_slug: event_slug
+            subject: subject
+            fields: feilds
         , success
         , failed
 

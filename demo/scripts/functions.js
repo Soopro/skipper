@@ -236,14 +236,12 @@ $(document).ready(function() {
   $('#create-free-demand-form').submit(function(e) {
     e.preventDefault();
     var action = this.action.trim();
-    var name = $(this).find('input[name="name"]').val();
-    var fields = member.fields(this, 'name');
+    var fields = member.fields(this);
     if(!fields.status) {
       return false;
     }
     member.demand.free({
       event_slug: action,
-      name: name,
       fields: fields.data
     }, function(data) {
       console.log('success:', data);
@@ -257,12 +255,14 @@ $(document).ready(function() {
   $('form[type=mailto]').submit(function(e) {
     e.preventDefault();
     var action = this.action.trim();
-    var subject = $(this).find('input[name="subject"]').val();
-    var fields = member.fields(this, 'subject');
+    var fields = member.fields(this);
     if(!fields.status) {
       return false;
     }
-    var mail_data = member.mailto(action, subject, fields.data);
+    var mail_data = member.mailto({
+      action: action,
+      fields: fields.data
+    });
     window.location.href = mail_data;
     return false;
   });
