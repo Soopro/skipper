@@ -409,7 +409,7 @@
         for (l = 0, len1 = elems.length; l < len1; l++) {
           elem = elems[l];
           data = parse_field(elem);
-          msgs = form_element.querySelectorAll('.messages[for="' + data.name + '"]');
+          msgs = form_element.querySelectorAll('[messages][for="' + data.name + '"], .messages[for="' + data.name + '"]');
           for (m = 0, len2 = msgs.length; m < len2; m++) {
             msg = msgs[m];
             msg.style.display = 'none';
@@ -480,10 +480,27 @@
           }, success, failed);
         },
         create: function(data, success, failed) {
+          var event_slug, field, fields, l, len1, ref, subject;
+          subject = '';
+          event_slug = data.event_slug;
+          fields = [];
+          ref = data.feilds;
+          for (l = 0, len1 = ref.length; l < len1; l++) {
+            field = ref[l];
+            if (field.name === 'subject') {
+              subject = field.value;
+            } else {
+              fields.push(field);
+            }
+          }
           return do_request({
             url: api_member + '/demand',
             type: 'POST',
-            data: data,
+            data: {
+              event_slug: event_slug,
+              subject: subject,
+              fields: feilds
+            },
             token: supCookie.get(TOKEN_COOKIE)
           }, success, failed);
         },

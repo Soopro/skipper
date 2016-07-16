@@ -336,7 +336,8 @@ root.Skipper = (opts) ->
       data_fields = []
       for elem in elems
         data = parse_field(elem)
-        msgs = form_element.querySelectorAll('.messages[for="'+data.name+'"]')
+        msgs = form_element.querySelectorAll(
+          '[messages][for="'+data.name+'"], .messages[for="'+data.name+'"]')
         for msg in msgs
           msg.style.display = 'none'
         if elem.hasAttribute('required') and data.value.length <= 0
@@ -394,10 +395,21 @@ root.Skipper = (opts) ->
         , failed
 
       create: (data, success, failed)->
+        subject = ''
+        event_slug = data.event_slug
+        fields = []
+        for field in data.feilds
+          if field.name == 'subject'
+            subject = field.value
+          else
+            fields.push field
         do_request
           url: api_member + '/demand'
           type: 'POST'
-          data: data
+          data:
+            event_slug: event_slug
+            subject: subject
+            fields: feilds
           token: supCookie.get TOKEN_COOKIE
         , success
         , failed
