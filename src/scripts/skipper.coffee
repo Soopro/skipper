@@ -339,8 +339,6 @@ root.Skipper = (opts) ->
       invalid_fields = []
       data_fields = []
       for elem in elems
-        if elem.getAttribute('name') in skips
-          continue
         data = parse_field(elem)
         msgs = form_element.querySelectorAll('.messages[for="'+data.name+'"]')
         for msg in msgs
@@ -349,7 +347,10 @@ root.Skipper = (opts) ->
           for msg in msgs
             msg.style.display = 'block'
           invalid_fields.push data
-        data_fields.push data
+
+        # check skip after field processed, because it need validation.
+        if data.name not in skip
+          data_fields.push data
 
       status = if invalid_fields.length > 0 then 0 else 1
 

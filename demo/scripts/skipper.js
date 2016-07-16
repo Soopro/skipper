@@ -414,9 +414,6 @@
         data_fields = [];
         for (l = 0, len1 = elems.length; l < len1; l++) {
           elem = elems[l];
-          if (ref = elem.getAttribute('name'), indexOf.call(skips, ref) >= 0) {
-            continue;
-          }
           data = parse_field(elem);
           msgs = form_element.querySelectorAll('.messages[for="' + data.name + '"]');
           for (m = 0, len2 = msgs.length; m < len2; m++) {
@@ -430,7 +427,9 @@
             }
             invalid_fields.push(data);
           }
-          data_fields.push(data);
+          if (ref = data.name, indexOf.call(skip, ref) < 0) {
+            data_fields.push(data);
+          }
         }
         status = invalid_fields.length > 0 ? 0 : 1;
         return {
