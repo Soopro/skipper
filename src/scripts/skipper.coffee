@@ -365,6 +365,8 @@ root.Skipper = (opts) ->
 
     mailto: (action, data_fields)->
       action = action.split("?")[0].split('#')[0]
+      if action.toLowerCase().indexOf('mailto:') != 0
+        action = 'mailto:'+action
       subject = ''
       mail_content = ''
       for field in (data_fields or [])

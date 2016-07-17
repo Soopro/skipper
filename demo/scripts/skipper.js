@@ -444,6 +444,9 @@
       mailto: function(action, data_fields) {
         var field, l, len1, mail_content, mail_data, ref, subject;
         action = action.split("?")[0].split('#')[0];
+        if (action.toLowerCase().indexOf('mailto:') !== 0) {
+          action = 'mailto:' + action;
+        }
         subject = '';
         mail_content = '';
         ref = data_fields || [];
