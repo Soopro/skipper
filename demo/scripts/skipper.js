@@ -117,7 +117,7 @@
   };
 
   default_options = {
-    apiBaseURL: 'http://api.soopro.com',
+    apiBaseURL: 'http://api.soopro.io',
     contentType: 'application/json',
     responseType: 'json',
     withCredentials: false,
