@@ -441,12 +441,12 @@
           "status": status
         };
       },
-      mailto: function(data) {
-        var action, field, l, len1, mail_content, mail_data, ref, subject;
-        action = data.action.split("?")[0].split('#')[0];
+      mailto: function(action, data_fields) {
+        var field, l, len1, mail_content, mail_data, ref, subject;
+        action = action.split("?")[0].split('#')[0];
         subject = '';
         mail_content = '';
-        ref = data.fields || [];
+        ref = data_fields || [];
         for (l = 0, len1 = ref.length; l < len1; l++) {
           field = ref[l];
           if (field.name === 'subject') {
@@ -460,12 +460,11 @@
         return mail_data;
       },
       demand: {
-        free: function(data, success, failed) {
-          var event_slug, field, fields, l, len1, ref, subject;
+        free: function(event_slug, data_fields, success, failed) {
+          var field, fields, l, len1, ref, subject;
           subject = '';
-          event_slug = data.action;
           fields = [];
-          ref = data.fields || [];
+          ref = data_fields || [];
           for (l = 0, len1 = ref.length; l < len1; l++) {
             field = ref[l];
             if (field.name === 'subject') {
@@ -491,12 +490,11 @@
             token: supCookie.get(TOKEN_COOKIE)
           }, success, failed);
         },
-        create: function(data, success, failed) {
-          var event_slug, field, fields, l, len1, ref, subject;
+        create: function(event_slug, data_fields, success, failed) {
+          var field, fields, l, len1, ref, subject;
           subject = '';
-          event_slug = data.action;
           fields = [];
-          ref = data.fields || [];
+          ref = data_fields || [];
           for (l = 0, len1 = ref.length; l < len1; l++) {
             field = ref[l];
             if (field.name === 'subject') {

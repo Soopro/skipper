@@ -363,11 +363,11 @@ root.Skipper = (opts) ->
         "status": status
       }
 
-    mailto: (data)->
-      action = data.action.split("?")[0].split('#')[0]
+    mailto: (action, data_fields)->
+      action = action.split("?")[0].split('#')[0]
       subject = ''
       mail_content = ''
-      for field in (data.fields or [])
+      for field in (data_fields or [])
         if field.name == 'subject'
           subject = field.value
         else
@@ -377,11 +377,10 @@ root.Skipper = (opts) ->
       return mail_data
 
     demand:
-      free: (data, success, failed)->
+      free: (event_slug, data_fields, success, failed)->
         subject = ''
-        event_slug = data.action
         fields = []
-        for field in (data.fields or [])
+        for field in (data_fields or [])
           if field.name == 'subject'
             subject = field.value
           else
@@ -404,11 +403,10 @@ root.Skipper = (opts) ->
         , success
         , failed
 
-      create: (data, success, failed)->
+      create: (event_slug, data_fields, success, failed)->
         subject = ''
-        event_slug = data.action
         fields = []
-        for field in (data.fields or [])
+        for field in (data_fields or [])
           if field.name == 'subject'
             subject = field.value
           else

@@ -227,7 +227,8 @@ $(document).ready(function() {
     results_error.hide();
 
     $(self).find('.results .success').hide();
-    create_demand_func(form_data, function(data) {
+    create_demand_func(form_data.action, form_data.fields
+    , function(data) {
       console.log('success:', data);
       results_success.show();
       render_demand(data);
@@ -245,7 +246,7 @@ $(document).ready(function() {
     if(!form_data.status) {
       return false;
     }
-    var mail_data = member.mailto(form_data);
+    var mail_data = member.mailto(form_data.action, form_data.fields);
     window.location.href = mail_data;
     return false;
   });
