@@ -128,10 +128,10 @@ root.Skipper = (opts) ->
   for k,v of opts
     options[k] = v
 
-  api = load_opt(options, 'api')
+  api_baseurl = load_opt(options, 'api_baseurl')
   app_id = load_opt(options, 'app_id')
 
-  if typeof api != 'string' or not api
+  if typeof api_baseurl != 'string' or not api_baseurl
     throw 'API missing!'
     return
 
@@ -199,9 +199,9 @@ root.Skipper = (opts) ->
       console.error e
 
   # define api resource
-  api_open = api + '/crm/entr/' + app_id + '/visitor'
-  api_member = api + '/crm/entr/' + app_id + '/member'
-  api_wx_link = api + '/wx/link_member'
+  api_open = api_baseurl + '/crm/entr/' + app_id + '/visitor'
+  api_member = api_baseurl + '/crm/entr/' + app_id + '/member'
+  api_wx_link = api_baseurl + '/wx/link_member'
 
   member =
     request: (request, success, failed)->
