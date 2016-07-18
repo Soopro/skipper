@@ -316,10 +316,10 @@ root.Skipper = (opts) ->
         label = el.getAttribute('label') or ''
 
         field_type = el.getAttribute('field')
-        if field_type == 'select'
+        if field_type == 'selector'
           value = el.options[el.selectedIndex or 0].value
 
-        else if field_type == 'multi-select'
+        else if field_type == 'multi-selector'
           value = ((opt.value or opt.text) for opt in el.options \
                                            when opt.selected)
 
