@@ -9,9 +9,7 @@ outer_path = [
 
 
 $(document).ready(function() {
-  var member = new Skipper({
-    apiBaseURL:'http://localhost:5000'
-  });
+  var member = new Skipper();
 
   current_path = location.pathname.substr(1)
 
