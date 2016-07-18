@@ -98,31 +98,42 @@ utils =
 
 
 
-default_options =
-  apiBaseURL: 'http://api.soopro.io'
-  contentType: 'application/json'
-  responseType: 'json'
-  withCredentials: false
-  expires: 1000*3600*24
-
 root.Skipper = (opts) ->
+  # options
+  default_options =
+    contentType: 'application/json'
+    responseType: 'json'
+    withCredentials: false
+    expires: 1000*3600*24
+
+  load_opt = (options, key)->
+    opt = null
+
+    if options[key]
+      opt = options[key]
+
+    if not opt
+      html = document.documentElement
+      opt = (html.getAttribute(key) or html.dataset[key])
+
+    if not app_id
+      metas = document.getElementsByTagName('meta')
+      for meta in metas
+        if meta.getAttribute("name") == key
+          opt = meta.getAttribute("content")
+          break
+    return opt
+
   options = default_options
   for k,v of opts
     options[k] = v
 
-  if options.app_id
-    app_id = options.app_id
+  api = load_opt(options, 'api')
+  app_id = load_opt(options, 'app_id')
 
-  if not app_id
-    html = document.documentElement
-    app_id = (html.getAttribute('app') or html.dataset.app)
-
-  if not app_id
-    metas = document.getElementsByTagName('meta')
-    for meta in metas
-      if meta.getAttribute("name") == "app_id"
-        app_id = meta.getAttribute("content")
-        break
+  if typeof api != 'string' or not api
+    throw 'API missing!'
+    return
 
   if typeof app_id != 'string' or not app_id
     throw 'App not found!'
@@ -188,7 +199,6 @@ root.Skipper = (opts) ->
       console.error e
 
   # define api resource
-  api = options.apiBaseURL
   api_open = api + '/crm/entr/' + app_id + '/visitor'
   api_member = api + '/crm/entr/' + app_id + '/member'
   api_wx_link = api + '/wx/link_member'
