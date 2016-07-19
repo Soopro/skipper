@@ -4,7 +4,7 @@
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
 
-version = '1.4.1'
+version = '1.4.2'
 
 TOKEN_COOKIE = 'sup_member_auth'
 OPEN_ID_COOKIE = 'sup_member_open_id'
@@ -323,7 +323,7 @@ root.Skipper = (opts) ->
 
       _get_field = (el)->
         name = el.getAttribute('name') or Date.now().toString()
-        label = el.getAttribute('label') or ''
+        label = el.getAttribute('label') or name or ''
 
         field_type = el.getAttribute('field')
         if field_type == 'selector'
