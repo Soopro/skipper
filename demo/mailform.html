@@ -10,7 +10,7 @@
 	<meta name="description" content="Supmice......">
 	<meta name="author" content="redy">
   <meta name="app_id" content="574b40eb1697963035217494">
-  <meta name="api" content="http://localhost:5000">
+  <meta name="api_baseurl" content="http://localhost:5000">
 	<!-- Favicons -->
 	<link rel="apple-touch-icon-precomposed" sizes="144x144"
 				href="ico/apple-touch-icon-144-precomposed.png">
@@ -20,6 +20,10 @@
 <body>
   <form action="mailto:you@yourdmainhere.com"
         type="mailto">
+    <div class="results">
+      <div class="success" style="display:none;">Success</div>
+      <div class="error" style="color:red;"></div>
+    </div>
     <p>
       Subject:<input type="text"
                      name="subject"
@@ -46,8 +50,9 @@
             field="multi-selector"
             required
             multiple>
-      <option value="is_select">Sel</option>
-      <option value="is_not_select">noSel</option>
+      <option value="sel_1">1 Sel</option>
+      <option value="sel_2">2 Sel</option>
+      <option value="sel_3">3 Sel</option>
     </select>
     <div class="messages" for="multi-select" style="display:none;">
       It's required!!

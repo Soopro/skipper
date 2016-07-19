@@ -205,6 +205,12 @@ $(document).ready(function() {
   $('form[type="event"]').submit(function(e) {
     e.preventDefault();
     var self = this;
+
+    var results_success = $(self).find('.results .success');
+    var results_error = $(self).find('.results .error');
+    results_success.hide();
+    results_error.hide();
+
     var create_func;
     if(member.open_id() && member.token()){
       member.profile.get(function(profile) {
@@ -219,10 +225,7 @@ $(document).ready(function() {
       console.log(form_data.fields);
       return false;
     }
-    var results_success = $(self).find('.results .success');
-    var results_error = $(self).find('.results .error');
-    results_success.hide();
-    results_error.hide();
+
 
     $(self).find('.results .success').hide();
     create_demand_func(form_data.action, form_data.fields
@@ -240,12 +243,25 @@ $(document).ready(function() {
 
   $('form[type="mailto"]').submit(function(e) {
     e.preventDefault();
+    var self = this;
+    var results_success = $(self).find('.results .success');
+    var results_error = $(self).find('.results .error');
+    results_success.hide();
+    results_error.hide();
+
+    if (member.utils.isWeChat()){
+      results_error.html('WeChat sucks!!');
+      results_error.show();
+      return false;
+    }
+
     var form_data = member.parse_form(this);
     if(!form_data.status) {
       return false;
     }
-    var mail_data = member.mailto(form_data.action, form_data.fields);
-    window.location.href = mail_data;
+
+    results_success.show();
+    window.location.href = member.mailto(form_data.action, form_data.fields)
     return false;
   });
 

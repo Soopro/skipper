@@ -4,6 +4,10 @@
 <body>
   <form action="mailto:you@yourdmainhere.com"
         type="mailto">
+    <div class="results">
+      <div class="success" style="display:none;">Success</div>
+      <div class="error" style="color:red;"></div>
+    </div>
     <p>
       Subject:<input type="text"
                      name="subject"
@@ -30,8 +34,9 @@
             field="multi-selector"
             required
             multiple>
-      <option value="is_select">Sel</option>
-      <option value="is_not_select">noSel</option>
+      <option value="sel_1">1 Sel</option>
+      <option value="sel_2">2 Sel</option>
+      <option value="sel_3">3 Sel</option>
     </select>
     <div class="messages" for="multi-select" style="display:none;">
       It's required!!

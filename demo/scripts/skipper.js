@@ -6,7 +6,7 @@
 
   root = is_exports ? exports : this;
 
-  version = '1.4.1';
+  version = '1.4.4';
 
   TOKEN_COOKIE = 'sup_member_auth';
 
@@ -113,11 +113,20 @@
       } else {
         return false;
       }
+    },
+    isWeChat: function() {
+      var error1, user_agent;
+      try {
+        user_agent = root.navigator.userAgent || '';
+      } catch (error1) {
+        user_agent = '';
+      }
+      return user_agent.indexOf('MicroMessenger') >= 0;
     }
   };
 
   root.Skipper = function(opts) {
-    var ajax, api, api_member, api_open, api_wx_link, app_id, clean_cookies, default_options, do_request, e, error1, k, load_opt, member, options, v, wx_open_sid;
+    var ajax, api_baseurl, api_member, api_open, api_wx_link, app_id, clean_cookies, default_options, do_request, e, error1, k, load_opt, member, options, v, wx_open_sid;
     default_options = {
       contentType: 'application/json',
       responseType: 'json',
@@ -151,9 +160,9 @@
       v = opts[k];
       options[k] = v;
     }
-    api = load_opt(options, 'api');
+    api_baseurl = load_opt(options, 'api_baseurl');
     app_id = load_opt(options, 'app_id');
-    if (typeof api !== 'string' || !api) {
+    if (typeof api_baseurl !== 'string' || !api_baseurl) {
       throw 'API missing!';
       return;
     }
@@ -230,9 +239,9 @@
         return console.error(e);
       }
     };
-    api_open = api + '/crm/entr/' + app_id + '/visitor';
-    api_member = api + '/crm/entr/' + app_id + '/member';
-    api_wx_link = api + '/wx/link_member';
+    api_open = api_baseurl + '/crm/entr/' + app_id + '/visitor';
+    api_member = api_baseurl + '/crm/entr/' + app_id + '/member';
+    api_wx_link = api_baseurl + '/wx/link_member';
     member = {
       request: function(request, success, failed) {
         return do_request(request, success, failed);
@@ -380,7 +389,7 @@
         _get_field = function(el) {
           var checked, field_type, item, label, name, opt, value;
           name = el.getAttribute('name') || Date.now().toString();
-          label = el.getAttribute('label') || '';
+          label = el.getAttribute('label') || name || '';
           field_type = el.getAttribute('field');
           if (field_type === 'selector') {
             value = el.options[el.selectedIndex || 0].value;

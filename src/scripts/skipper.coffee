@@ -4,7 +4,7 @@
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
 
-version = '1.4.2'
+version = '1.4.4'
 
 TOKEN_COOKIE = 'sup_member_auth'
 OPEN_ID_COOKIE = 'sup_member_open_id'
@@ -15,6 +15,7 @@ WX_LINK_COOKIE = 'sup_wx_link'
 PARAM_WX_OPEN_SID = 'wx_open_sid'
 
 Q = root.Q.noConflict()
+
 
 utils =
   setParam: (key, value) ->
@@ -95,6 +96,13 @@ utils =
       return (o.nodeType == 1 and typeof o.nodeName == 'string')
     else
       return false
+
+  isWeChat: ->
+    try
+      user_agent = root.navigator.userAgent or ''
+    catch
+      user_agent = ''
+    return user_agent.indexOf('MicroMessenger') >= 0
 
 
 
