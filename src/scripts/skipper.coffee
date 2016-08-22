@@ -4,7 +4,7 @@
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
 
-version = '1.4.4'
+version = '1.4.5'
 
 TOKEN_COOKIE = 'sup_member_auth'
 OPEN_ID_COOKIE = 'sup_member_open_id'
@@ -341,15 +341,16 @@ root.Skipper = (opts) ->
           value = ((opt.value or opt.text) for opt in el.options \
                                            when opt.selected)
 
-        else if field_type in ['radio', 'checkbox']
+        else if field_type  == 'checkbox'
           checked = el.querySelectorAll(':checked')
-          if checked.length > 1
+          if checked.length > 0
             value = (item.value for item in checked)
-          else if checked.length == 1
-            value = checked[0].value
           else
             value = undefined
-
+        else if field_type == 'radio'
+          checked = el.querySelectorAll(':checked')
+          if checked.length > 0
+            value = checked[0].value
         else
           value = el.value or el.text
 
