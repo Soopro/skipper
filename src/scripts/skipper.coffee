@@ -4,19 +4,21 @@
 is_exports = typeof exports isnt "undefined" and exports isnt null
 root = if is_exports then exports else this
 
-version = '1.4.5'
+project:
+  name: 'Julolo Mini'
+  version: '1.5.4'
+  creator: [
+    'Redyyu'
+  ]
 
-TOKEN_COOKIE = 'sup_member_auth'
-OPEN_ID_COOKIE = 'sup_member_open_id'
-PROFILE_COOKIE = 'sup_member_profile'
-WX_OPEN_SID_COOKIE = 'sup_wx_open_sid'
-WX_LINK_COOKIE = 'sup_wx_link'
+TOKEN_COOKIE = 'skipper_member_auth'
+OPEN_ID_COOKIE = 'skipper_member_open_id'
+PROFILE_COOKIE = 'skipper_member_profile'
 
-PARAM_WX_OPEN_SID = 'wx_open_sid'
-
-Q = root.Q.noConflict()
+API_HOST = 'https://api.soopro.io'
 
 
+# utils
 utils =
   setParam: (key, value) ->
     key = encodeURIComponent(key)
@@ -76,11 +78,8 @@ utils =
     else
       return query_args
 
-  last_slash: (str, slash)->
-    if not slash
-      slash = '/'
-    return str.substring(str.lastIndexOf(slash) + 1, str.length)
 
+  # --- is ---
   isNode: (o) ->
     if typeof Node == 'object'
       return o instanceof Node
@@ -104,6 +103,11 @@ utils =
       user_agent = ''
     return user_agent.indexOf('MicroMessenger') >= 0
 
+  isUrl: (str)->
+    if typeof(url) isnt 'string'
+      return false
+    regex = /^([\w]+:)?\/\/[a-zA-Z0-9]/i
+    return url.match(regex)
 
 
 root.Skipper = (opts) ->
@@ -114,50 +118,18 @@ root.Skipper = (opts) ->
     withCredentials: false
     expires: 1000*3600*24
 
-  load_opt = (options, key)->
-    opt = null
-
-    if options[key]
-      opt = options[key]
-
-    if not opt
-      html = document.documentElement
-      opt = (html.getAttribute(key) or html.dataset[key])
-
-    if not app_id
-      metas = document.getElementsByTagName('meta')
-      for meta in metas
-        if meta.getAttribute("name") == key
-          opt = meta.getAttribute("content")
-          break
-    return opt
-
   options = default_options
   for k,v of opts
     options[k] = v
 
-  api_baseurl = load_opt(options, 'api_baseurl')
-  app_id = load_opt(options, 'app_id')
+  api_host = options.api_host or API_HOST
+  app_id = options.app_id
 
-  if typeof api_baseurl != 'string' or not api_baseurl
-    throw 'API missing!'
+  if not app_id
+    throw 'app_id is required!'
     return
 
-  if typeof app_id != 'string' or not app_id
-    throw 'App not found!'
-    return
-
-
-  # process wx member link
-  wx_open_sid = utils.getParam(PARAM_WX_OPEN_SID)
-
-  if wx_open_sid
-    try
-      supCookie.set WX_OPEN_SID_COOKIE, wx_open_sid, options.expires
-    catch e
-      console.error e
-  else
-    wx_open_sid = supCookie.get WX_OPEN_SID_COOKIE
+  api_baseurl = api_host + '/crm/external/' + app_id
 
   # define request function
   ajax = new Ajax()
@@ -166,6 +138,9 @@ root.Skipper = (opts) ->
       request.headers = {}
     if request.token
       request.headers['Authorization'] = 'Bearer '+request.token
+
+    if not request.url
+      request.url = api_baseurl + request.path
 
     response = ajax.send
       type: request.type
@@ -201,16 +176,10 @@ root.Skipper = (opts) ->
       supCookie.remove PROFILE_COOKIE
       supCookie.remove TOKEN_COOKIE
       supCookie.remove OPEN_ID_COOKIE
-      supCookie.remove WX_OPEN_SID_COOKIE
-      supCookie.remove WX_LINK_COOKIE
     catch e
       console.error e
 
   # define api resource
-  api_open = api_baseurl + '/crm/entr/' + app_id + '/visitor'
-  api_member = api_baseurl + '/crm/entr/' + app_id + '/member'
-  api_wx_link = api_baseurl + '/wx/link_member'
-
   member =
     request: (request, success, failed)->
       do_request request
@@ -593,95 +562,7 @@ root.Skipper = (opts) ->
   return member
 
 
-# Errors
-InvalidRequestAPI = new Error('Request API is invaild.')
-InvalidRequestType = new Error('Request Type is invaild.')
-InvalidRequestData = new Error('Request Data is invaild.')
-InvalidRequestParam = new Error('Request Param is invaild.')
-ResouceNotFound = new Error('Resource Not Found.')
 
-
-# AJAX
-Ajax = ->
-  ajax =
-    get: (request) ->
-      XHRConnection 'GET', request
-    post: (request) ->
-      XHRConnection 'POST', request
-    update: (request) ->
-      XHRConnection 'PUT', request
-    remove: (request) ->
-      XHRConnection 'DELETE', request
-    send: (request) ->
-      XHRConnection request.type, request
-
-
-  XHRConnection = (type, request) ->
-    xhr = new XMLHttpRequest()
-    url = utils.addParam(request.url, request.params)
-
-    xhr.open type, url or '', true
-
-    xhr.responseType = request.responseType
-    xhr.withCredentials = Boolean(request.withCredentials)
-
-    xhr.setRequestHeader 'Content-Type', request.contentType
-    xhr.setRequestHeader 'X-Requested-With', 'XMLHttpRequest'
-
-    if typeof request.headers is 'object'
-      for k,v of request.headers
-        xhr.setRequestHeader k, v
-
-    # listener
-    deferred = Q.defer()
-
-    ready = (e)->
-      xhr = this
-      if xhr.readyState == xhr.DONE
-        xhr.removeEventListener 'readystatechange', ready
-        result = parse_response(xhr)
-        if xhr.status >= 200 and xhr.status < 399
-          deferred.resolve(result.data)
-        else
-          deferred.reject(result)
-
-    xhr.addEventListener 'readystatechange', ready
-
-    # send
-    if type in ['GET', 'DELETE']
-      xhr.send()
-    else
-      try
-        send_data = JSON.stringify(request.data or {})
-      catch error
-        throw error
-
-      xhr.send(send_data)
-
-    return deferred.promise
-
-
-  parse_response = (xhr, headers) ->
-    if xhr.responseType is 'json'
-      data = xhr.response
-    else if xhr.responseType in ['blob', 'arraybuffer']
-      data = xhr.response
-    else if xhr.responseType is 'document'
-      data = xhr.responseXML
-    else if xhr.responseType in ['', 'text']
-      data = xhr.responseText
-
-    result =
-      data: data
-      headers: xhr.getAllResponseHeaders()
-      status: xhr.status
-      statusText: xhr.statusText
-      responseType: xhr.responseType
-      responseURL: xhr.responseURL
-
-    return result
-
-  return ajax
 
 # Cookie
 procces_cookie_output = (value)->
