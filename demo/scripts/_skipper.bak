@@ -3,7 +3,7 @@
 # -------------------------------
 root = window
 
-project =
+project:
   name: 'Skipper'
   version: '2.0.0'
   creator: [
@@ -14,8 +14,6 @@ TOKEN_COOKIE = 'skipper_member_auth'
 OPEN_ID_COOKIE = 'skipper_member_open_id'
 PROFILE_COOKIE = 'skipper_member_profile'
 
-EVENT_FORM_KYES = ['appointee', 'contact', 'date', 'location']
-
 API_HOST = 'https://api.soopro.io'
 
 
@@ -23,8 +21,6 @@ API_HOST = 'https://api.soopro.io'
 # Main
 # --------------
 root.Skipper = (opts) ->
-  self = @
-
   # config
   default_conf =
     contentType: 'application/json'
@@ -38,6 +34,7 @@ root.Skipper = (opts) ->
 
   api_host = conf.api_host or API_HOST
   app_id = conf.app_id
+
   if not app_id
     throw 'app_id is required!'
     return
@@ -83,6 +80,8 @@ root.Skipper = (opts) ->
 
     return resp
 
+
+  # clean cookie
   clean_cookies = ->
     try
       cookie.remove PROFILE_COOKIE
@@ -91,68 +90,8 @@ root.Skipper = (opts) ->
     catch e
       console.error e
 
-  parse_appt_data: (form_data)->
-    data =
-      event_slug: form_data.action
-      meta: {}
-
-    for field in form_data.fields
-      key = field.name
-      if key in EVENT_FORM_KYES
-        data[key] = field.value
-      else
-        if data.meta[key]
-          if utils.isArray(data.meta[key])
-            data.meta[key].push field.value
-          else
-            _value = data.meta[key]
-            data.meta[key] = [_value, field.value]
-        else
-          data.meta[key] = field.value
-    return data
-
-  # expose attributes
-  self.utils = utils
-  self.version = project.version
-
   # define api resource
-  resource =
-    token: (token)->
-      if token in [null, false]
-        try
-          cookie.remove TOKEN_COOKIE
-        catch e
-          console.error e
-          return false
-
-      else if token
-        try
-          cookie.set TOKEN_COOKIE, token, options.expires
-        catch e
-          console.error e
-          return false
-
-      return cookie.get TOKEN_COOKIE
-
-
-    open_id: (open_id)->
-      if open_id in [null, false]
-        try
-          cookie.remove OPEN_ID_COOKIE
-        catch e
-          console.error e
-          return false
-
-      else if open_id
-        try
-          cookie.set OPEN_ID_COOKIE, open_id, options.expires
-        catch e
-          console.error e
-          return false
-
-      return cookie.get OPEN_ID_COOKIE
-
-
+  member =
     login: (data, success, failed)->
       do_request
         path: '/login'
@@ -205,6 +144,7 @@ root.Skipper = (opts) ->
           success(data)
       , failed
 
+
     profile:
       get: (success, failed)->
         profile = cookie.get PROFILE_COOKIE
@@ -244,7 +184,7 @@ root.Skipper = (opts) ->
             success(data)
         , failed
 
-      clear: ->
+      clean: ->
         try
           cookie.remove PROFILE_COOKIE
           return true
@@ -252,52 +192,279 @@ root.Skipper = (opts) ->
           console.error e
           return false
 
-    mailto: (form_data)->
-      action = form_data.action.split("?")[0].split('#')[0]
-      if action.toLowerCase().indexOf('mailto:') != 0
-        action = 'mailto:' + action
-      subject = form_data.title or ''
-      mail_content = ''
-      last_key = null
-      for field, idx in form_data.fields
-        if last_key == field.name
-          mail_content = mail_content+', ' + field.value
-        else
-          mail_content += '\n' if idx > 0
-          mail_content = mail_content+field.name+': '+field.value
-        last_key = field.name
+    parse_form: (form_element)->
+      try
+        action = form_element.action or form_element.getAttribute('action')
+        action = utils.last_slash(action).trim()
+        if typeof(action) isnt 'string' or not action
+          throw 'Form action not found!'
+        elems = form_element.querySelectorAll('[field]')
+      catch e
+        console.error e
+        return false
 
-      mail_content = encodeURIComponent(mail_content)
+      _get_field = (el)->
+        name = el.getAttribute('name') or Date.now().toString()
+        label = el.getAttribute('label') or name or ''
+
+        field_type = el.getAttribute('field')
+        if field_type == 'selector'
+          value = el.options[el.selectedIndex or 0].value
+
+        else if field_type == 'multi-selector'
+          value = ((opt.value or opt.text) for opt in el.options \
+                                           when opt.selected)
+
+        else if field_type  == 'checkbox'
+          checked = el.querySelectorAll(':checked')
+          if checked.length > 0
+            value = (item.value for item in checked)
+          else
+            value = undefined
+        else if field_type == 'radio'
+          checked = el.querySelectorAll(':checked')
+          if checked.length > 0
+            value = checked[0].value
+        else
+          value = el.value or el.text
+
+        return {
+          "name": name.trim()
+          "label": label.trim()
+          "value": value or ''
+        }
+
+      invalid_fields = []
+      data_fields = []
+      for elem in elems
+        data = _get_field(elem)
+        msgs = form_element.querySelectorAll(
+          '[messages][for="'+data.name+'"], .messages[for="'+data.name+'"]')
+        for msg in msgs
+          msg.style.display = 'none'
+        if elem.hasAttribute('required') and data.value.length <= 0
+          for msg in msgs
+            msg.style.display = 'block'
+          invalid_fields.push data
+        data_fields.push data
+
+      status = if invalid_fields.length > 0 then 0 else 1
+
+      return {
+        "action": action
+        "fields": if status then data_fields else invalid_fields
+        "status": status
+      }
+
+    mailto: (action, data_fields)->
+      action = action.split("?")[0].split('#')[0]
+      if action.toLowerCase().indexOf('mailto:') != 0
+        action = 'mailto:'+action
+      subject = ''
+      mail_content = ''
+      for field in (data_fields or [])
+        if field.name == 'subject'
+          subject = field.value
+        else
+          mail_content = mail_content+field.label+': '+field.value+'\n'
+      mail_content = encodeURIComponent(mail_content) or ''
       mail_data = action+'?subject='+subject+'&body='+mail_content
       return mail_data
 
-    appointment:
+    demand:
+      free: (event_slug, data_fields, success, failed)->
+        subject = ''
+        fields = []
+        for field in (data_fields or [])
+          if field.name == 'subject'
+            subject = field.value
+          else
+            fields.push field
+        do_request
+          url: api_open + '/demand'
+          type: 'POST'
+          data:
+            event_slug: event_slug
+            subject: subject
+            fields: fields
+        , success
+        , failed
+
       query: (success, failed)->
         do_request
-          url: '/appointment'
+          url: api_member + '/demand'
           type: 'GET'
           token: cookie.get TOKEN_COOKIE
         , success
         , failed
 
-      create: (form_data, success, failed)->
+      create: (event_slug, data_fields, success, failed)->
+        subject = ''
+        fields = []
+        for field in (data_fields or [])
+          if field.name == 'subject'
+            subject = field.value
+          else
+            fields.push field
         do_request
-          url: '/appointment'
+          url: api_member + '/demand'
           type: 'POST'
-          data: parse_appt_data(form_data)
+          data:
+            event_slug: event_slug
+            subject: subject
+            fields: fields
           token: cookie.get TOKEN_COOKIE
         , success
         , failed
 
       remove: (key, success, failed)->
         do_request
-          url: '/appointment' + key
+          url: api_member + '/demand/' + key
           type: 'DELETE'
           token: cookie.get TOKEN_COOKIE
         , success
         , failed
 
-  return resource
+    wxlink:
+      open_sid: ->
+        return cookie.get WX_OPEN_SID_COOKIE
+
+      login: (success, failed)->
+        wx_open_sid = cookie.get WX_OPEN_SID_COOKIE
+        do_request
+          url: api_wx_link+'/'+wx_open_sid
+          type: 'GET'
+        , (data)->
+          try
+            cookie.set WX_LINK_COOKIE, data, options.expires
+          catch e
+            console.error e
+          if data.token
+            try
+              cookie.set TOKEN_COOKIE, data.token, options.expires
+              cookie.set OPEN_ID_COOKIE, data.open_id, options.expires
+            catch e
+              console.error e
+          if typeof success is 'function'
+            success(data)
+        , (error)->
+          try
+            cookie.remove WX_OPEN_SID_COOKIE
+          catch e
+            console.error e
+          if typeof failed is 'function'
+            failed(error)
+
+      get: (success, failed)->
+        wx_link = cookie.get WX_LINK_COOKIE
+        if wx_link
+          deferred = Q.defer()
+          deferred.resolve(wx_link)
+          if typeof success is 'function'
+            deferred.promise.then (data)->
+              success data
+              return data
+          return deferred.promise
+        else
+          wx_open_sid = cookie.get WX_OPEN_SID_COOKIE
+          do_request
+            url: api_wx_link+'/'+wx_open_sid
+            type: 'GET'
+          , (data)->
+            try
+              cookie.set WX_LINK_COOKIE, data, options.expires
+            catch e
+              console.error e
+            if typeof success is 'function'
+              success(data)
+          , (error)->
+            try
+              cookie.remove WX_OPEN_SID_COOKIE
+            catch e
+              console.error e
+            if typeof failed is 'function'
+              failed(error)
+
+      unlink: (success, failed)->
+        wx_open_sid = cookie.get WX_OPEN_SID_COOKIE
+        do_request
+          url: api_wx_link+'/'+wx_open_sid
+          type: 'DELETE'
+          token: cookie.get TOKEN_COOKIE
+        , (data)->
+            try
+              cookie.remove WX_LINK_COOKIE
+            catch e
+              console.error e
+            if typeof success is 'function'
+              success(data)
+        , failed
+
+      link: (success, failed)->
+        wx_open_sid = cookie.get WX_OPEN_SID_COOKIE
+        do_request
+          url: api_wx_link
+          type: 'POST'
+          data:
+            open_sid: wx_open_sid
+          token: cookie.get TOKEN_COOKIE
+        , (data)->
+            try
+              cookie.set WX_LINK_COOKIE, data, options.expires
+            catch e
+              console.error e
+            if typeof success is 'function'
+              success(data)
+        , failed
+
+      clean: ->
+        try
+          cookie.remove WX_OPEN_SID_COOKIE
+          cookie.remove WX_LINK_COOKIE
+          return true
+        catch e
+          console.error e
+          return false
+
+    token: (token)->
+      if token in [null, false]
+        try
+          cookie.remove TOKEN_COOKIE
+        catch e
+          console.error e
+          return false
+
+      else if token
+        try
+          cookie.set TOKEN_COOKIE, token, options.expires
+        catch e
+          console.error e
+          return false
+
+      return cookie.get TOKEN_COOKIE
+
+
+    open_id: (open_id)->
+      if open_id in [null, false]
+        try
+          cookie.remove OPEN_ID_COOKIE
+        catch e
+          console.error e
+          return false
+
+      else if open_id
+        try
+          cookie.set OPEN_ID_COOKIE, open_id, options.expires
+        catch e
+          console.error e
+          return false
+
+      return cookie.get OPEN_ID_COOKIE
+
+    utils: utils
+    version: version
+
+  return member
 
 
 # --------------
@@ -376,24 +543,6 @@ utils =
     else
       return query_args
 
-  # --- str ---
-  startswith: (str, text) ->
-    if typeof(str) isnt 'string' or typeof(text) isnt 'string'
-      return null
-    return str.indexOf(text) is 0
-
-  endswith: (str, text) ->
-    if typeof(str) isnt 'string' or typeof(text) isnt 'string'
-      return null
-    return str.substr(str.length - text.length) == text
-
-  # --- browser ---
-  in_wechat: ->
-    try
-      user_agent = root.navigator.userAgent or ''
-    catch
-      user_agent = ''
-    return user_agent.indexOf('MicroMessenger') >= 0
 
   # --- is ---
   isNode: (o) ->
@@ -412,6 +561,13 @@ utils =
     else
       return false
 
+  isWeChat: ->
+    try
+      user_agent = root.navigator.userAgent or ''
+    catch
+      user_agent = ''
+    return user_agent.indexOf('MicroMessenger') >= 0
+
   isUrl: (str)->
     if typeof(url) isnt 'string'
       return false
@@ -421,7 +577,7 @@ utils =
   isDict: (obj)->
     return typeof(obj) is 'object' and not Array.isArray(obj)
 
-  isFunction: (obj)->
+  isFunction = (obj)->
     return typeof(obj) is 'function'
 
 

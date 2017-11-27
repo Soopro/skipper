@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include '../_head_.html' %}
+<body>
+  <form class="form-mailto"
+        action="mailto:you@yourdmainhere.com"
+        title="test"
+        action="redy@tinforce.com"
+        type="mailto"
+        app-id="59c12e838fa55546a4924acf">
+    <div class="results">
+      <div class="success" style="display:none;">Success</div>
+      <div class="error" style="color:red;"></div>
+    </div>
+
+    <p>
+      Select:
+      <select name="sel">
+        <option value="Sel">Sel</option>
+        <option value="noSel">noSel</option>
+      </select>
+    </p>
+    <p>
+      Checkbox 1:
+      <div>
+        <div>
+          <label>
+            <input type="checkbox"
+                   value="选择#1-1"
+                   name="checkbox" />&nbsp;选择#1-1
+          </label>
+        </div>
+        <div>
+          <label>
+            <input type="checkbox"
+                   value="选择#1-2"
+                   name="checkbox" />&nbsp;选择#1-2
+          </label>
+        </div>
+      </div>
+      <div class="messages" for="checkbox" style="display:none;">
+        It's required!!
+      </div>
+    </p>
+
+    <p field="radio"
+       label="Radio">
+      Radio:
+      <label>
+        <input type="radio" name="sex" value="男"> 男
+      </label>
+      <label>
+        <input type="radio" name="sex" value="女"> 女
+      </label>
+    </p>
+    <p>
+      Message:
+      <textarea field="textarea"
+                name="message"></textarea>
+    </p>
+    <input type="hidden" name="hidden" value="哈哈哈" />
+    <p>
+      <input type="submit" value="Submit">
+    </p>
+  </form>
+  <p>
+    <a href="index.html">Back</a>
+  </p>
+{% include '../_js_.html' %}
+<script src="mailto.js"></script>
+</body>
+</html>
