@@ -93,20 +93,26 @@ root.Skipper = (opts) ->
     data =
       event_slug: form_data.action
       meta: {}
-
-    for field in form_data.fields
-      key = field.name
-      if key in EVENT_FORM_KYES
-        data[key] = field.value
-      else
-        if data.meta[key]
-          if utils.isArray(data.meta[key])
-            data.meta[key].push field.value
-          else
-            _value = data.meta[key]
-            data.meta[key] = [_value, field.value]
+    if utils.isDict(form_data.fields)
+      for k, v of form_data.fields
+        if k in EVENT_FORM_KYES
+          data[k] = v
         else
-          data.meta[key] = field.value
+          data.meta[k] = v
+    else if utils.isArray(form_data.fields)
+      for field in form_data.fields
+        key = field.name
+        if key in EVENT_FORM_KYES
+          data[key] = field.value
+        else
+          if data.meta[key]
+            if utils.isArray(data.meta[key])
+              data.meta[key].push field.value
+            else
+              _value = data.meta[key]
+              data.meta[key] = [_value, field.value]
+          else
+            data.meta[key] = field.value
     return data
 
   # define api resource

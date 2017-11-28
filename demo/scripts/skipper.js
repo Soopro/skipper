@@ -108,27 +108,39 @@
       }
     };
     parse_appt_data = function(form_data) {
-      var _value, data, field, j, key, len, ref;
+      var _value, data, field, j, key, len, ref, ref1;
       data = {
         event_slug: form_data.action,
         meta: {}
       };
-      ref = form_data.fields;
-      for (j = 0, len = ref.length; j < len; j++) {
-        field = ref[j];
-        key = field.name;
-        if (indexOf.call(EVENT_FORM_KYES, key) >= 0) {
-          data[key] = field.value;
-        } else {
-          if (data.meta[key]) {
-            if (utils.isArray(data.meta[key])) {
-              data.meta[key].push(field.value);
-            } else {
-              _value = data.meta[key];
-              data.meta[key] = [_value, field.value];
-            }
+      if (utils.isDict(form_data.fields)) {
+        ref = form_data.fields;
+        for (k in ref) {
+          v = ref[k];
+          if (indexOf.call(EVENT_FORM_KYES, k) >= 0) {
+            data[k] = v;
           } else {
-            data.meta[key] = field.value;
+            data.meta[k] = v;
+          }
+        }
+      } else if (utils.isArray(form_data.fields)) {
+        ref1 = form_data.fields;
+        for (j = 0, len = ref1.length; j < len; j++) {
+          field = ref1[j];
+          key = field.name;
+          if (indexOf.call(EVENT_FORM_KYES, key) >= 0) {
+            data[key] = field.value;
+          } else {
+            if (data.meta[key]) {
+              if (utils.isArray(data.meta[key])) {
+                data.meta[key].push(field.value);
+              } else {
+                _value = data.meta[key];
+                data.meta[key] = [_value, field.value];
+              }
+            } else {
+              data.meta[key] = field.value;
+            }
           }
         }
       }
