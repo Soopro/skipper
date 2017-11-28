@@ -22,16 +22,16 @@
 
   EVENT_FORM_KYES = ['appointee', 'contact', 'date', 'location'];
 
-  API_HOST = 'https://api.soopro.io';
+  API_HOST = 'https://api.soopro.io/crm/external';
 
   // --------------
   // Main
   // --------------
   root.Skipper = function(opts) {
-    var _request, ajax, api_baseurl, api_host, app_id, clean_cookies, conf, default_conf, k, resource, self, v;
-    self = this;
+    var ajax, api_baseurl, clean_cookies, conf, default_conf, k, parse_appt_data, request, resource, v;
     // config
     default_conf = {
+      api_host: API_HOST,
       contentType: 'application/json',
       responseType: 'json',
       withCredentials: false,
@@ -42,16 +42,14 @@
       v = opts[k];
       conf[k] = v;
     }
-    api_host = conf.api_host || API_HOST;
-    app_id = conf.app_id;
-    if (!app_id) {
-      throw 'app_id is required!';
+    if (!conf.app_id) {
+      throw 'app id is required!';
       return;
     }
-    api_baseurl = api_host + '/crm/external/' + app_id;
+    api_baseurl = conf.api_host + '/' + conf.app_id;
     // define request
     ajax = new Ajax();
-    _request = function(opts, success_callback, failed_callback) {
+    request = function(opts, success_callback, failed_callback) {
       var resp;
       if (!utils.isDict(opts.headers)) {
         opts.headers = {};
@@ -109,38 +107,33 @@
         return console.error(e);
       }
     };
-    ({
-      parse_appt_data: function(form_data) {
-        var _value, data, field, j, key, len, ref;
-        data = {
-          event_slug: form_data.action,
-          meta: {}
-        };
-        ref = form_data.fields;
-        for (j = 0, len = ref.length; j < len; j++) {
-          field = ref[j];
-          key = field.name;
-          if (indexOf.call(EVENT_FORM_KYES, key) >= 0) {
-            data[key] = field.value;
-          } else {
-            if (data.meta[key]) {
-              if (utils.isArray(data.meta[key])) {
-                data.meta[key].push(field.value);
-              } else {
-                _value = data.meta[key];
-                data.meta[key] = [_value, field.value];
-              }
+    parse_appt_data = function(form_data) {
+      var _value, data, field, j, key, len, ref;
+      data = {
+        event_slug: form_data.action,
+        meta: {}
+      };
+      ref = form_data.fields;
+      for (j = 0, len = ref.length; j < len; j++) {
+        field = ref[j];
+        key = field.name;
+        if (indexOf.call(EVENT_FORM_KYES, key) >= 0) {
+          data[key] = field.value;
+        } else {
+          if (data.meta[key]) {
+            if (utils.isArray(data.meta[key])) {
+              data.meta[key].push(field.value);
             } else {
-              data.meta[key] = field.value;
+              _value = data.meta[key];
+              data.meta[key] = [_value, field.value];
             }
+          } else {
+            data.meta[key] = field.value;
           }
         }
-        return data;
       }
-    });
-    // expose attributes
-    self.utils = utils;
-    self.version = project.version;
+      return data;
+    };
     // define api resource
     resource = {
       token: function(token) {
@@ -186,7 +179,7 @@
         return cookie.get(OPEN_ID_COOKIE);
       },
       login: function(data, success, failed) {
-        return do_request({
+        return request({
           path: '/login',
           type: 'POST',
           data: data
@@ -205,7 +198,7 @@
         }, failed);
       },
       logout: function(success, failed) {
-        return do_request({
+        return request({
           path: '/logout',
           type: 'GET',
           token: cookie.get(TOKEN_COOKIE)
@@ -222,14 +215,14 @@
         });
       },
       register: function(data, success, failed) {
-        return do_request({
+        return request({
           url: '/register',
           type: 'POST',
           data: data
         }, success, failed);
       },
       pwd: function(data, success, failed) {
-        return do_request({
+        return request({
           url: '/security/pwd',
           type: 'POST',
           data: data,
@@ -261,7 +254,7 @@
             }
             return promise;
           } else {
-            return do_request({
+            return request({
               path: '/profile',
               type: 'GET',
               token: cookie.get(TOKEN_COOKIE)
@@ -280,7 +273,7 @@
           }
         },
         update: function(data, success, failed) {
-          return do_request({
+          return request({
             path: '/profile',
             type: 'PUT',
             data: data,
@@ -311,50 +304,62 @@
         }
       },
       mailto: function(form_data) {
-        var action, field, idx, j, last_key, len, mail_content, mail_data, ref, subject;
-        action = form_data.action.split("?")[0].split('#')[0];
-        if (action.toLowerCase().indexOf('mailto:') !== 0) {
-          action = 'mailto:' + action;
-        }
-        subject = form_data.title || '';
-        mail_content = '';
-        last_key = null;
-        ref = form_data.fields;
-        for (idx = j = 0, len = ref.length; j < len; idx = ++j) {
-          field = ref[idx];
-          if (last_key === field.name) {
-            mail_content = mail_content + ', ' + field.value;
-          } else {
-            if (idx > 0) {
-              mail_content += '\n';
-            }
-            mail_content = mail_content + field.name + ': ' + field.value;
+        var _mailto, promise;
+        _mailto = function() {
+          var action, field, idx, j, last_key, len, mail_content, ref, subject;
+          action = form_data.action.split("?")[0].split('#')[0];
+          if (action.toLowerCase().indexOf('mailto:') !== 0) {
+            action = 'mailto:' + action;
           }
-          last_key = field.name;
-        }
-        mail_content = encodeURIComponent(mail_content);
-        mail_data = action + '?subject=' + subject + '&body=' + mail_content;
-        return mail_data;
+          subject = form_data.title || '';
+          mail_content = '';
+          last_key = null;
+          ref = form_data.fields;
+          for (idx = j = 0, len = ref.length; j < len; idx = ++j) {
+            field = ref[idx];
+            if (last_key === field.name) {
+              mail_content = mail_content + ', ' + field.value;
+            } else {
+              if (idx > 0) {
+                mail_content += '\n';
+              }
+              mail_content = mail_content + field.name + ': ' + field.value;
+            }
+            last_key = field.name;
+          }
+          mail_content = encodeURIComponent(mail_content);
+          return action + '?subject=' + subject + '&body=' + mail_content;
+        };
+        promise = new Promise(function(resolve, reject) {
+          var e;
+          try {
+            return resolve(_mailto());
+          } catch (error1) {
+            e = error1;
+            return reject(e);
+          }
+        });
+        return promise;
       },
       appointment: {
         query: function(success, failed) {
-          return do_request({
-            url: '/appointment',
+          return request({
+            path: '/appointment',
             type: 'GET',
             token: cookie.get(TOKEN_COOKIE)
           }, success, failed);
         },
         create: function(form_data, success, failed) {
-          return do_request({
-            url: '/appointment',
+          return request({
+            path: '/appointment',
             type: 'POST',
             data: parse_appt_data(form_data),
             token: cookie.get(TOKEN_COOKIE)
           }, success, failed);
         },
-        remove: function(key, success, failed) {
-          return do_request({
-            url: '/appointment' + key,
+        remove: function(appt_id, success, failed) {
+          return request({
+            path: '/appointment/' + appt_id,
             type: 'DELETE',
             token: cookie.get(TOKEN_COOKIE)
           }, success, failed);
@@ -504,6 +509,9 @@
       regex = /^([\w]+:)?\/\/[a-zA-Z0-9]/i;
       return url.match(regex);
     },
+    isArray: function(obj) {
+      return Array.isArray(obj);
+    },
     isDict: function(obj) {
       return typeof obj === 'object' && !Array.isArray(obj);
     },
@@ -562,33 +570,33 @@
   Ajax = function() {
     var XHRConnection, ajax, parse_response;
     ajax = {
-      get: function(request) {
-        return XHRConnection('GET', request);
+      get: function(opts) {
+        return XHRConnection('GET', opts);
       },
-      post: function(request) {
-        return XHRConnection('POST', request);
+      post: function(opts) {
+        return XHRConnection('POST', opts);
       },
-      update: function(request) {
-        return XHRConnection('PUT', request);
+      update: function(opts) {
+        return XHRConnection('PUT', opts);
       },
-      remove: function(request) {
-        return XHRConnection('DELETE', request);
+      remove: function(opts) {
+        return XHRConnection('DELETE', opts);
       },
-      send: function(request) {
-        return XHRConnection(request.type, request);
+      send: function(opts) {
+        return XHRConnection(opts.type, opts);
       }
     };
-    XHRConnection = function(type, request) {
+    XHRConnection = function(type, opts) {
       var k, promise, ref, send_data, url, v, xhr;
       xhr = new XMLHttpRequest();
-      url = utils.addParam(request.url, request.params);
+      url = utils.addParam(opts.url, opts.params);
       xhr.open(type, url || '', true);
-      xhr.responseType = request.responseType;
-      xhr.withCredentials = Boolean(request.withCredentials);
-      xhr.setRequestHeader('Content-Type', request.contentType);
+      xhr.responseType = opts.responseType;
+      xhr.withCredentials = Boolean(opts.withCredentials);
+      xhr.setRequestHeader('Content-Type', opts.contentType);
       xhr.setRequestHeader('X-Requested-With', 'XMLHttpRequest');
-      if (typeof request.headers === 'object') {
-        ref = request.headers;
+      if (typeof opts.headers === 'object') {
+        ref = opts.headers;
         for (k in ref) {
           v = ref[k];
           xhr.setRequestHeader(k, v);
@@ -615,7 +623,7 @@
       if (type === 'GET' || type === 'DELETE') {
         xhr.send();
       } else {
-        send_data = JSON.stringify(request.data || {});
+        send_data = JSON.stringify(opts.data || {});
         xhr.send(send_data);
       }
       return promise;
@@ -643,5 +651,10 @@
     };
     return ajax;
   };
+
+  // expose attributes
+  Skipper.utils = utils;
+
+  Skipper.version = project.version;
 
 }).call(this);

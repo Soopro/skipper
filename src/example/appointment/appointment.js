@@ -1,24 +1,19 @@
 $(document).ready(function() {
   "use strict";
 
-  $('.form-mailto').each(function(e){
+  $('.form-appt').each(function(e){
     var results_success = $(this).find('.flash .success');
     var results_error = $(this).find('.flash .error');
-    var unsupported = $(this).find('.flash .unsupported');
     results_success.hide();
     results_error.hide();
-    unsupported.hide();
 
     var type = $(this).attr('type');
     var app_id = $(this).attr('app-id');
 
-    var member = new Skipper({app_id: app_id});
-
-    if(Skipper.utils.in_wechat() && type == 'mailto') {
-      $(this).children().hide();
-      $(this).find('.flash').show();
-      unsupported.show();
-    }
+    var member = new Skipper({
+      api_host: 'http://localhost:5000/crm/external',
+      app_id: app_id
+    });
 
     $(this).submit(function(e) {
       e.preventDefault();
@@ -30,12 +25,8 @@ $(document).ready(function() {
         action: $(this).attr('action'),
       };
 
-      member.mailto(form_data).then(function(mail_url){
-        window.location.href = mail_url;
-        results_success.show();
-      }).catch(function(error){
-        results_error.show();
-      });
+      var mail_url = member.appointment.create(form_data);
+      results_success.show();
       return false;
     });
   });

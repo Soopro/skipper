@@ -16,17 +16,17 @@ PROFILE_COOKIE = 'skipper_member_profile'
 
 EVENT_FORM_KYES = ['appointee', 'contact', 'date', 'location']
 
-API_HOST = 'https://api.soopro.io'
+API_HOST = 'https://api.soopro.io/crm/external'
 
 
 # --------------
 # Main
 # --------------
 root.Skipper = (opts) ->
-  self = @
 
   # config
   default_conf =
+    api_host: API_HOST
     contentType: 'application/json'
     responseType: 'json'
     withCredentials: false
@@ -36,17 +36,15 @@ root.Skipper = (opts) ->
   for k, v of opts
     conf[k] = v
 
-  api_host = conf.api_host or API_HOST
-  app_id = conf.app_id
-  if not app_id
-    throw 'app_id is required!'
+  if not conf.app_id
+    throw 'app id is required!'
     return
 
-  api_baseurl = api_host + '/crm/external/' + app_id
+  api_baseurl = conf.api_host + '/' + conf.app_id
 
   # define request
   ajax = new Ajax()
-  _request = (opts, success_callback, failed_callback) ->
+  request = (opts, success_callback, failed_callback) ->
     if not utils.isDict(opts.headers)
       opts.headers = {}
     if opts.token
@@ -91,7 +89,7 @@ root.Skipper = (opts) ->
     catch e
       console.error e
 
-  parse_appt_data: (form_data)->
+  parse_appt_data = (form_data)->
     data =
       event_slug: form_data.action
       meta: {}
@@ -110,10 +108,6 @@ root.Skipper = (opts) ->
         else
           data.meta[key] = field.value
     return data
-
-  # expose attributes
-  self.utils = utils
-  self.version = project.version
 
   # define api resource
   resource =
@@ -154,7 +148,7 @@ root.Skipper = (opts) ->
 
 
     login: (data, success, failed)->
-      do_request
+      request
         path: '/login'
         type: 'POST'
         data: data
@@ -169,7 +163,7 @@ root.Skipper = (opts) ->
       , failed
 
     logout: (success, failed)->
-      do_request
+      request
         path: '/logout'
         type: 'GET'
         token: cookie.get TOKEN_COOKIE
@@ -183,7 +177,7 @@ root.Skipper = (opts) ->
           failed(data)
 
     register: (data, success, failed)->
-      do_request
+      request
         url: '/register'
         type: 'POST'
         data: data
@@ -191,7 +185,7 @@ root.Skipper = (opts) ->
       , failed
 
     pwd: (data, success, failed)->
-      do_request
+      request
         url: '/security/pwd'
         type: 'POST'
         data: data
@@ -216,7 +210,7 @@ root.Skipper = (opts) ->
               return data
           return promise
         else
-          do_request
+          request
             path: '/profile'
             type: 'GET'
             token: cookie.get TOKEN_COOKIE
@@ -230,7 +224,7 @@ root.Skipper = (opts) ->
           , failed
 
       update: (data, success, failed)->
-        do_request
+        request
           path: '/profile'
           type: 'PUT'
           data: data
@@ -253,45 +247,53 @@ root.Skipper = (opts) ->
           return false
 
     mailto: (form_data)->
-      action = form_data.action.split("?")[0].split('#')[0]
-      if action.toLowerCase().indexOf('mailto:') != 0
-        action = 'mailto:' + action
-      subject = form_data.title or ''
-      mail_content = ''
-      last_key = null
-      for field, idx in form_data.fields
-        if last_key == field.name
-          mail_content = mail_content+', ' + field.value
-        else
-          mail_content += '\n' if idx > 0
-          mail_content = mail_content+field.name+': '+field.value
-        last_key = field.name
+      _mailto = ->
+        action = form_data.action.split("?")[0].split('#')[0]
+        if action.toLowerCase().indexOf('mailto:') != 0
+          action = 'mailto:' + action
+        subject = form_data.title or ''
+        mail_content = ''
+        last_key = null
+        for field, idx in form_data.fields
+          if last_key == field.name
+            mail_content = mail_content+', ' + field.value
+          else
+            mail_content += '\n' if idx > 0
+            mail_content = mail_content+field.name+': '+field.value
+          last_key = field.name
 
-      mail_content = encodeURIComponent(mail_content)
-      mail_data = action+'?subject='+subject+'&body='+mail_content
-      return mail_data
+        mail_content = encodeURIComponent(mail_content)
+        return action+'?subject='+subject+'&body='+mail_content
+
+      promise = new Promise (resolve, reject)->
+        try
+          resolve(_mailto())
+        catch e
+          reject(e)
+
+      return promise
 
     appointment:
       query: (success, failed)->
-        do_request
-          url: '/appointment'
+        request
+          path: '/appointment'
           type: 'GET'
           token: cookie.get TOKEN_COOKIE
         , success
         , failed
 
       create: (form_data, success, failed)->
-        do_request
-          url: '/appointment'
+        request
+          path: '/appointment'
           type: 'POST'
           data: parse_appt_data(form_data)
           token: cookie.get TOKEN_COOKIE
         , success
         , failed
 
-      remove: (key, success, failed)->
-        do_request
-          url: '/appointment' + key
+      remove: (appt_id, success, failed)->
+        request
+          path: '/appointment/' + appt_id
           type: 'DELETE'
           token: cookie.get TOKEN_COOKIE
         , success
@@ -418,6 +420,9 @@ utils =
     regex = /^([\w]+:)?\/\/[a-zA-Z0-9]/i
     return url.match(regex)
 
+  isArray: (obj) ->
+    return Array.isArray(obj)
+
   isDict: (obj)->
     return typeof(obj) is 'object' and not Array.isArray(obj)
 
@@ -464,32 +469,32 @@ cookie =
 # ajax
 Ajax = ->
   ajax =
-    get: (request) ->
-      XHRConnection 'GET', request
-    post: (request) ->
-      XHRConnection 'POST', request
-    update: (request) ->
-      XHRConnection 'PUT', request
-    remove: (request) ->
-      XHRConnection 'DELETE', request
-    send: (request) ->
-      XHRConnection request.type, request
+    get: (opts) ->
+      XHRConnection 'GET', opts
+    post: (opts) ->
+      XHRConnection 'POST', opts
+    update: (opts) ->
+      XHRConnection 'PUT', opts
+    remove: (opts) ->
+      XHRConnection 'DELETE', opts
+    send: (opts) ->
+      XHRConnection opts.type, opts
 
 
-  XHRConnection = (type, request) ->
+  XHRConnection = (type, opts) ->
     xhr = new XMLHttpRequest()
-    url = utils.addParam(request.url, request.params)
+    url = utils.addParam(opts.url, opts.params)
 
     xhr.open type, url or '', true
 
-    xhr.responseType = request.responseType
-    xhr.withCredentials = Boolean(request.withCredentials)
+    xhr.responseType = opts.responseType
+    xhr.withCredentials = Boolean(opts.withCredentials)
 
-    xhr.setRequestHeader 'Content-Type', request.contentType
+    xhr.setRequestHeader 'Content-Type', opts.contentType
     xhr.setRequestHeader 'X-Requested-With', 'XMLHttpRequest'
 
-    if typeof request.headers is 'object'
-      for k, v of request.headers
+    if typeof opts.headers is 'object'
+      for k, v of opts.headers
         xhr.setRequestHeader k, v
 
     promise = new Promise (resolve, reject)->
@@ -509,7 +514,7 @@ Ajax = ->
     if type in ['GET', 'DELETE']
       xhr.send()
     else
-      send_data = JSON.stringify(request.data or {})
+      send_data = JSON.stringify(opts.data or {})
       xhr.send(send_data)
 
     return promise
@@ -536,3 +541,8 @@ Ajax = ->
     return result
 
   return ajax
+
+
+# expose attributes
+Skipper.utils = utils
+Skipper.version = project.version
