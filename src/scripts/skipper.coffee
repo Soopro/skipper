@@ -121,7 +121,7 @@ root.Skipper = (opts) ->
 
       else if token
         try
-          cookie.set TOKEN_COOKIE, token, options.expires
+          cookie.set TOKEN_COOKIE, token, conf.expires
         catch e
           console.error e
           return false
@@ -139,7 +139,7 @@ root.Skipper = (opts) ->
 
       else if open_id
         try
-          cookie.set OPEN_ID_COOKIE, open_id, options.expires
+          cookie.set OPEN_ID_COOKIE, open_id, conf.expires
         catch e
           console.error e
           return false
@@ -154,8 +154,8 @@ root.Skipper = (opts) ->
         data: data
       , (data)->
         try
-          cookie.set TOKEN_COOKIE, data.token, options.expires
-          cookie.set OPEN_ID_COOKIE, data.open_id, options.expires
+          cookie.set TOKEN_COOKIE, data.token, conf.expires
+          cookie.set OPEN_ID_COOKIE, data.open_id, conf.expires
         catch e
           console.error e
         if utils.isFunction(success)
@@ -192,7 +192,7 @@ root.Skipper = (opts) ->
         token: cookie.get TOKEN_COOKIE
       , (data)->
         try
-          cookie.set TOKEN_COOKIE, data.token, options.expires
+          cookie.set TOKEN_COOKIE, data.token, conf.expires
         catch e
           console.error e
         if utils.isFunction(success)
@@ -216,7 +216,7 @@ root.Skipper = (opts) ->
             token: cookie.get TOKEN_COOKIE
           , (data)->
             try
-              cookie.set PROFILE_COOKIE, data, options.expires
+              cookie.set PROFILE_COOKIE, data, conf.expires
             catch e
               console.error e
             if utils.isFunction(success)
@@ -231,7 +231,7 @@ root.Skipper = (opts) ->
           token: cookie.get TOKEN_COOKIE
         , (data)->
           try
-            cookie.set PROFILE_COOKIE, data, options.expires
+            cookie.set PROFILE_COOKIE, data, conf.expires
           catch e
             console.error e
           if utils.isFunction(success)

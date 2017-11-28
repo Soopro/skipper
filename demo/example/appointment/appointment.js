@@ -1,7 +1,7 @@
 $(document).ready(function() {
   "use strict";
 
-  $('.form-appt').each(function(e){
+  $('.form-appt').each(function(){
     var results_success = $(this).find('.flash .success');
     var results_error = $(this).find('.flash .error');
     results_success.hide();

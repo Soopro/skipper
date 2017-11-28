@@ -1,7 +1,7 @@
 $(document).ready(function() {
   "use strict";
 
-  $('.form-mailto').each(function(e){
+  $('.form-mailto').each(function(){
     var results_success = $(this).find('.flash .success');
     var results_error = $(this).find('.flash .error');
     var unsupported = $(this).find('.flash .unsupported');

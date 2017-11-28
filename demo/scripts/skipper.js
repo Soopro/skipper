@@ -148,7 +148,7 @@
           }
         } else if (token) {
           try {
-            cookie.set(TOKEN_COOKIE, token, options.expires);
+            cookie.set(TOKEN_COOKIE, token, conf.expires);
           } catch (error1) {
             e = error1;
             console.error(e);
@@ -169,7 +169,7 @@
           }
         } else if (open_id) {
           try {
-            cookie.set(OPEN_ID_COOKIE, open_id, options.expires);
+            cookie.set(OPEN_ID_COOKIE, open_id, conf.expires);
           } catch (error1) {
             e = error1;
             console.error(e);
@@ -186,8 +186,8 @@
         }, function(data) {
           var e;
           try {
-            cookie.set(TOKEN_COOKIE, data.token, options.expires);
-            cookie.set(OPEN_ID_COOKIE, data.open_id, options.expires);
+            cookie.set(TOKEN_COOKIE, data.token, conf.expires);
+            cookie.set(OPEN_ID_COOKIE, data.open_id, conf.expires);
           } catch (error1) {
             e = error1;
             console.error(e);
@@ -230,7 +230,7 @@
         }, function(data) {
           var e;
           try {
-            cookie.set(TOKEN_COOKIE, data.token, options.expires);
+            cookie.set(TOKEN_COOKIE, data.token, conf.expires);
           } catch (error1) {
             e = error1;
             console.error(e);
@@ -261,7 +261,7 @@
             }, function(data) {
               var e;
               try {
-                cookie.set(PROFILE_COOKIE, data, options.expires);
+                cookie.set(PROFILE_COOKIE, data, conf.expires);
               } catch (error1) {
                 e = error1;
                 console.error(e);
@@ -281,7 +281,7 @@
           }, function(data) {
             var e;
             try {
-              cookie.set(PROFILE_COOKIE, data, options.expires);
+              cookie.set(PROFILE_COOKIE, data, conf.expires);
             } catch (error1) {
               e = error1;
               console.error(e);

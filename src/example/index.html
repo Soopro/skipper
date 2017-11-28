@@ -19,37 +19,65 @@
     <a href="mailto/mailto.html">Mailto</a> &nbsp;
   </nav>
 
-  <div id="login" style="display:none;">
+  <div id="login"
+       app-id="56ceec0ef596b16b1a1d33c7"
+       style="display:none;">
     Login
-    <form id="login-form">
+    <form class="form-login">
       <div class="flash">
-        <p id="seccesed" style="display: none;">Login seccessed!</p>
-        <p id="failed" style="display: none;">Login failed!</p>
+        <div class="success" style="display:none;">Success</div>
+        <div class="error" style="display:none; color:red;">Error</div>
       </div>
       <p>
         Name:
-        <input type="text" name="log" title="input name"/>
+        <input type="text" name="login" placeholder="input login"/>
       </p>
       <p>
         Password:
-        <input type="text" name="pwd" title="input password"/>
+        <input type="password" name="passwd" placeholder="input password"/>
+      </p>
+      <button type="submit">Login</button>
+    </form>
+    <hr>
+    <a href="register.html">Register</a>
+  </div>
+
+  <div id="profile"
+       style="display:none;"
+       app-id="56ceec0ef596b16b1a1d33c7">
+    <p>Login: <span member-log></span></p>
+    <p>
+      Role: <span member-role>Default</span>
+            <span member-role-slug></span>
+    </p>
+    <p>Entrypoint: <span member-entrypoint></span></p>
+    <p>Status: <span member-status></span></p>
+    <form class="form-profile">
+      <div class="flash">
+        <div class="success" style="display:none;">Success</div>
+        <div class="error" style="display:none; color:red;">Error</div>
+      </div>
+      <p>
+        Name:
+        <input type="text" name="name" placeholder="input name"/>
       </p>
       <p>
-        <input type="submit" value="login">
+        Email:
+        <input type="text" name="email" placeholder="input email"/>
       </p>
+      <p>
+        Avatar:
+        <input type="text" name="avatar" placeholder="input avatar"/>
+      </p>
+      <p>
+        Mobile:
+        <input type="text" name="mobile" placeholder="input mobile"/>
+      </p>
+      <button type="submit">Save</button>
     </form>
-    <a href="register.html">Register</a>
-    <a href="recovery.html">Recover</a>
-  </div>
-  <div id="profile" style="display:none;">
-    <p>Login: <span member-log></span></p>
-  	<p>Name: <span member-name></span></p>
-    <p>Email: <span member-email></span></p>
-    <p>Avatar: <span member-avatar></span></p>
-    <p>Mobile: <span member-mobile></span></p>
-    <p>Status: <span member-status></span></p>
+    <hr>
     <div style="margin: 16px 0;">
-      <p><input type="submit" id="logout" value="logout"/></p>
+      <button id="logout">Logout</button>
     </div>
   </div>
 
