@@ -35,7 +35,7 @@
       contentType: 'application/json',
       responseType: 'json',
       withCredentials: false,
-      expires: 1000 * 3600 * 24
+      expires_in: 3600 * 24 * 30 // in second, 30 days.
     };
     conf = default_conf;
     for (k in opts) {
@@ -148,7 +148,7 @@
           }
         } else if (token) {
           try {
-            cookie.set(TOKEN_COOKIE, token, conf.expires);
+            cookie.set(TOKEN_COOKIE, token, conf.expires_in);
           } catch (error1) {
             e = error1;
             console.error(e);
@@ -169,7 +169,7 @@
           }
         } else if (open_id) {
           try {
-            cookie.set(OPEN_ID_COOKIE, open_id, conf.expires);
+            cookie.set(OPEN_ID_COOKIE, open_id, conf.expires_in);
           } catch (error1) {
             e = error1;
             console.error(e);
@@ -186,8 +186,8 @@
         }, function(data) {
           var e;
           try {
-            cookie.set(TOKEN_COOKIE, data.token, conf.expires);
-            cookie.set(OPEN_ID_COOKIE, data.open_id, conf.expires);
+            cookie.set(TOKEN_COOKIE, data.token, conf.expires_in);
+            cookie.set(OPEN_ID_COOKIE, data.open_id, conf.expires_in);
           } catch (error1) {
             e = error1;
             console.error(e);
@@ -216,29 +216,32 @@
       },
       register: function(data, success, failed) {
         return request({
-          url: '/register',
+          path: '/register',
           type: 'POST',
           data: data
         }, success, failed);
       },
-      pwd: function(data, success, failed) {
-        return request({
-          url: '/security/pwd',
-          type: 'POST',
-          data: data,
-          token: cookie.get(TOKEN_COOKIE)
-        }, function(data) {
-          var e;
-          try {
-            cookie.set(TOKEN_COOKIE, data.token, conf.expires);
-          } catch (error1) {
-            e = error1;
-            console.error(e);
-          }
-          if (utils.isFunction(success)) {
-            return success(data);
-          }
-        }, failed);
+      security: {
+        pwd: function(data, success, failed) {
+          return request({
+            path: '/security/pwd',
+            type: 'PUT',
+            data: data,
+            token: cookie.get(TOKEN_COOKIE)
+          }, function(data) {
+            var e;
+            try {
+              cookie.set(TOKEN_COOKIE, data.token, conf.expires_in);
+              cookie.set(OPEN_ID_COOKIE, data.open_id, conf.expires_in);
+            } catch (error1) {
+              e = error1;
+              console.error(e);
+            }
+            if (utils.isFunction(success)) {
+              return success(data);
+            }
+          }, failed);
+        }
       },
       profile: {
         get: function(success, failed) {
@@ -261,7 +264,7 @@
             }, function(data) {
               var e;
               try {
-                cookie.set(PROFILE_COOKIE, data, conf.expires);
+                cookie.set(PROFILE_COOKIE, data, conf.expires_in);
               } catch (error1) {
                 e = error1;
                 console.error(e);
@@ -281,7 +284,7 @@
           }, function(data) {
             var e;
             try {
-              cookie.set(PROFILE_COOKIE, data, conf.expires);
+              cookie.set(PROFILE_COOKIE, data, conf.expires_in);
             } catch (error1) {
               e = error1;
               console.error(e);
@@ -525,13 +528,14 @@
 
   // cookie
   cookie = {
-    set: function(cname, cvalue, expires, path, domain) {
-      var d;
+    set: function(cname, cvalue, expires_in, path, domain) {
+      var d, expires;
+      expires_in = expires_in * 1000; // to js timestamp, 13d.
       cvalue = JSON.stringify({
         value: cvalue
       });
       d = new Date();
-      d.setTime(d.getTime() + expires);
+      d.setTime(d.getTime() + expires_in);
       expires = expires ? 'expires=' + d.toUTCString() + '; ' : '';
       path = path ? 'path=' + path + '; ' : 'path=/; ';
       domain = domain ? 'domain=' + domain + '; ' : '';

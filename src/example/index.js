@@ -20,9 +20,9 @@ $(document).ready(function() {
       $('#profile [member-status]').html(data.status);
 
       $('#profile input[name="name"]').val(data.meta.name);
-      $('#profile input[name="email"]').html(data.meta.email);
-      $('#profile input[name=avatar]').html(data.meta.avatar);
-      $('#profile input[name=mobile]').html(data.meta.mobile);
+      $('#profile input[name="email"]').val(data.meta.email);
+      $('#profile input[name=avatar]').val(data.meta.avatar);
+      $('#profile input[name=mobile]').val(data.meta.mobile);
     });
   }
 
@@ -74,10 +74,21 @@ $(document).ready(function() {
     results_success.hide();
     results_error.hide();
 
+    var form_data = $(this).serializeArray();
+    var meta = {};
+
+    for (var i = 0; i < form_data.length; i++){
+      var key = form_data[i].name;
+      var value = form_data[i].value;
+      meta[key] = value;
+    }
+
     member.profile.update({
       meta: meta,
     }).then(function(data){
+      console.log(data);
       get_profile();
+      results_success.show();
     }).catch(function(error){
       console.log(error.data);
       results_error.show();

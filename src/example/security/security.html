@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+{% include '../_head_.html' %}
+<body>
+  <a href="../../example/index.html">Back</a>
+
+  <h1>Security</h1>
+
+  <form class="form-security"
+        app-id="56ceec0ef596b16b1a1d33c7"
+        style="display:none;">
+    <div class="flash">
+      <div class="success" style="display:none;">Success</div>
+      <div class="error" style="display:none; color:red;">Error</div>
+    </div>
+    <p>
+      Old Password:
+      <input type="text" name="old_passwd"/>
+    </p>
+    <p>
+      New Password:
+      <input type="text" name="passwd"/>
+    </p>
+    <p>
+      Confirm New Password:
+      <input type="text" name="passwd2"/>
+    </p>
+    <button type="submit">Save</button>
+  </form>
+
+{% include '../_js_.html' %}
+<script src="security.js"></script>
+</body>
+</html>

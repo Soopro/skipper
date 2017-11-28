@@ -30,7 +30,7 @@ root.Skipper = (opts) ->
     contentType: 'application/json'
     responseType: 'json'
     withCredentials: false
-    expires: 1000*3600*24
+    expires_in: 3600*24*30  # in second, 30 days.
 
   conf = default_conf
   for k, v of opts
@@ -121,7 +121,7 @@ root.Skipper = (opts) ->
 
       else if token
         try
-          cookie.set TOKEN_COOKIE, token, conf.expires
+          cookie.set TOKEN_COOKIE, token, conf.expires_in
         catch e
           console.error e
           return false
@@ -139,7 +139,7 @@ root.Skipper = (opts) ->
 
       else if open_id
         try
-          cookie.set OPEN_ID_COOKIE, open_id, conf.expires
+          cookie.set OPEN_ID_COOKIE, open_id, conf.expires_in
         catch e
           console.error e
           return false
@@ -154,8 +154,8 @@ root.Skipper = (opts) ->
         data: data
       , (data)->
         try
-          cookie.set TOKEN_COOKIE, data.token, conf.expires
-          cookie.set OPEN_ID_COOKIE, data.open_id, conf.expires
+          cookie.set TOKEN_COOKIE, data.token, conf.expires_in
+          cookie.set OPEN_ID_COOKIE, data.open_id, conf.expires_in
         catch e
           console.error e
         if utils.isFunction(success)
@@ -178,26 +178,28 @@ root.Skipper = (opts) ->
 
     register: (data, success, failed)->
       request
-        url: '/register'
+        path: '/register'
         type: 'POST'
         data: data
       , success
       , failed
 
-    pwd: (data, success, failed)->
-      request
-        url: '/security/pwd'
-        type: 'POST'
-        data: data
-        token: cookie.get TOKEN_COOKIE
-      , (data)->
-        try
-          cookie.set TOKEN_COOKIE, data.token, conf.expires
-        catch e
-          console.error e
-        if utils.isFunction(success)
-          success(data)
-      , failed
+    security:
+      pwd: (data, success, failed)->
+        request
+          path: '/security/pwd'
+          type: 'PUT'
+          data: data
+          token: cookie.get TOKEN_COOKIE
+        , (data)->
+          try
+            cookie.set TOKEN_COOKIE, data.token, conf.expires_in
+            cookie.set OPEN_ID_COOKIE, data.open_id, conf.expires_in
+          catch e
+            console.error e
+          if utils.isFunction(success)
+            success(data)
+        , failed
 
     profile:
       get: (success, failed)->
@@ -216,7 +218,7 @@ root.Skipper = (opts) ->
             token: cookie.get TOKEN_COOKIE
           , (data)->
             try
-              cookie.set PROFILE_COOKIE, data, conf.expires
+              cookie.set PROFILE_COOKIE, data, conf.expires_in
             catch e
               console.error e
             if utils.isFunction(success)
@@ -231,7 +233,7 @@ root.Skipper = (opts) ->
           token: cookie.get TOKEN_COOKIE
         , (data)->
           try
-            cookie.set PROFILE_COOKIE, data, conf.expires
+            cookie.set PROFILE_COOKIE, data, conf.expires_in
           catch e
             console.error e
           if utils.isFunction(success)
@@ -435,10 +437,11 @@ utils =
 
 # cookie
 cookie =
-  set: (cname, cvalue, expires, path, domain) ->
+  set: (cname, cvalue, expires_in, path, domain) ->
+    expires_in = expires_in * 1000  # to js timestamp, 13d.
     cvalue = JSON.stringify({value: cvalue})
     d = new Date()
-    d.setTime(d.getTime()+expires)
+    d.setTime(d.getTime()+expires_in)
     expires = if expires then 'expires='+d.toUTCString()+'; ' else ''
     path = if path then 'path='+path+'; ' else 'path=/; '
     domain = if domain then 'domain='+domain+'; ' else ''
