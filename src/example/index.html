@@ -1,35 +1,62 @@
 <!DOCTYPE html>
 <html lang="en">
-{% include '_head_.html' %}
+<head>
+  <meta http-equiv=Content-Type content="text/html;charset=utf-8">
+  <meta name="viewport" content="initial-scale=1.0, maximum-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+  <meta name="format-detection" content="telephone=yes">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <meta name="description" content="Supmice......">
+  <meta name="author" content="redy">
+  <title>Skipper</title>
+</head>
 <body>
-  <div id="log">
-  	<a href="login.html">login</a>
+  <nav style="background:#eee; padding:16px; margin:16px 0;">
+    <a href="index.html">Index</a> &nbsp;
+    <a href="member/member.html">Activities</a> &nbsp;
+    <a href="appointment/appointment.html">Make Appointment</a> &nbsp;
+    <a href="mailto/mailto.html">Mailto</a> &nbsp;
+  </nav>
+
+  <div id="login" style="display:none;">
+    Login
+    <form id="login-form">
+      <div class="flash">
+        <p id="seccesed" style="display: none;">Login seccessed!</p>
+        <p id="failed" style="display: none;">Login failed!</p>
+      </div>
+      <p>
+        Name:
+        <input type="text" name="log" title="input name"/>
+      </p>
+      <p>
+        Password:
+        <input type="text" name="pwd" title="input password"/>
+      </p>
+      <p>
+        <input type="submit" value="login">
+      </p>
+    </form>
+    <a href="register.html">Register</a>
+    <a href="recovery.html">Recover</a>
   </div>
-  <div id="profile">
+  <div id="profile" style="display:none;">
     <p>Login: <span member-log></span></p>
   	<p>Name: <span member-name></span></p>
     <p>Email: <span member-email></span></p>
     <p>Avatar: <span member-avatar></span></p>
     <p>Mobile: <span member-mobile></span></p>
     <p>Status: <span member-status></span></p>
+    <div style="margin: 16px 0;">
+      <p><input type="submit" id="logout" value="logout"/></p>
+    </div>
   </div>
-  <div>
-    <button id="wx-link-btn" style="display:none">
-      Link member to WeChat
-    </button>
-    <button id="wx-unlink-btn" style="display:none">
-      UnLink member from WeChat
-    </button>
-  <div>
-  <div>
-    <p>
-  	  <a href="edit.html">Edit</a>
-      <a href="events.html">Activities</a>
-    </p>
-    <p><a href="demand.html">Make Demand</a></p>
-    <p><a href="mailform.html">Mailform</a></p>
-  </div>
-{% include '_logout_.html' %}
-{% include '_js_.html' %}
+
+
+
+<script src="../scripts/libs/jquery.min.js"></script>
+<script src="../scripts/skipper.js"></script>
+<script src="index.js"></script>
 </body>
 </html>

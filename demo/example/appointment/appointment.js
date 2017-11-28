@@ -25,8 +25,14 @@ $(document).ready(function() {
         action: $(this).attr('action'),
       };
 
-      var mail_url = member.appointment.create(form_data);
-      results_success.show();
+      member.appointment.create(form_data).then(function(data){
+        console.log(data);
+        results_success.show();
+      }).catch(function(error){
+        console.error(error.data);
+        results_error.show();
+      });
+
       return false;
     });
   });

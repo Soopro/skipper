@@ -307,9 +307,6 @@
         var _mailto, promise;
         _mailto = function() {
           var action, field, idx, j, last_key, len, mail_content, ref, subject;
-          if (!utils.isArray(form_data)) {
-            throw 'form_data is required, and must be a list.';
-          }
           action = form_data.action.split("?")[0].split('#')[0];
           if (action.toLowerCase().indexOf('mailto:') !== 0) {
             action = 'mailto:' + action;

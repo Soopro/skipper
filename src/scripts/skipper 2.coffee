@@ -248,9 +248,6 @@ root.Skipper = (opts) ->
 
     mailto: (form_data)->
       _mailto = ->
-        if not utils.isArray(form_data)
-          throw 'form_data is required, and must be a list.'
-
         action = form_data.action.split("?")[0].split('#')[0]
         if action.toLowerCase().indexOf('mailto:') != 0
           action = 'mailto:' + action
