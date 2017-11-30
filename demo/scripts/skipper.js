@@ -28,7 +28,7 @@
   // Main
   // --------------
   root.Skipper = function(opts) {
-    var ajax, api_baseurl, clean_cookies, conf, default_conf, k, parse_appt_data, request, resource, v;
+    var ajax, api_baseurl, clean_cookies, conf, default_conf, k, parse_appt_data, parse_mail_data, request, resource, v;
     // config
     default_conf = {
       api_host: API_HOST,
@@ -106,6 +106,33 @@
         e = error1;
         return console.error(e);
       }
+    };
+    parse_mail_data = function(form_data) {
+      var data, field, j, key, len, ref, ref1;
+      data = {};
+      if (utils.isDict(form_data.fields)) {
+        ref = form_data.fields;
+        for (k in ref) {
+          v = ref[k];
+          data[k] = v;
+        }
+      } else if (utils.isArray(form_data.fields)) {
+        ref1 = form_data.fields;
+        for (j = 0, len = ref1.length; j < len; j++) {
+          field = ref1[j];
+          key = field.name;
+          if (data[key]) {
+            if (utils.isArray(data[key])) {
+              data[key].push(field.value);
+            } else {
+              data[key] = [data[key], field.value];
+            }
+          } else {
+            data[key] = field.value;
+          }
+        }
+      }
+      return data;
     };
     parse_appt_data = function(form_data) {
       var _value, data, field, j, key, len, ref, ref1;
@@ -321,29 +348,18 @@
       mailto: function(form_data) {
         var _mailto, promise;
         _mailto = function() {
-          var action, field, idx, j, last_key, len, mail_content, ref, subject;
-          if (!utils.isArray(form_data)) {
-            throw 'form_data is required, and must be a list.';
-          }
+          var _value, action, mail_content, ref, subject;
           action = form_data.action.split("?")[0].split('#')[0];
           if (action.toLowerCase().indexOf('mailto:') !== 0) {
             action = 'mailto:' + action;
           }
           subject = form_data.title || '';
           mail_content = '';
-          last_key = null;
-          ref = form_data.fields;
-          for (idx = j = 0, len = ref.length; j < len; idx = ++j) {
-            field = ref[idx];
-            if (last_key === field.name) {
-              mail_content = mail_content + ', ' + field.value;
-            } else {
-              if (idx > 0) {
-                mail_content += '\n';
-              }
-              mail_content = mail_content + field.name + ': ' + field.value;
-            }
-            last_key = field.name;
+          ref = parse_mail_data(form_data);
+          for (k in ref) {
+            v = ref[k];
+            _value = utils.isArray(v) ? v.join(', ') : v;
+            mail_content = mail_content + k + ': ' + _value + '\n';
           }
           mail_content = encodeURIComponent(mail_content);
           return action + '?subject=' + subject + '&body=' + mail_content;
@@ -422,7 +438,9 @@
         s += (s.length > 0 ? '&' : '?') + kvp;
       }
       document.location.search = s;
-      return {key, value};
+      return {
+        key: value
+      };
     },
     addParam: function(url, params) {
       var _add, item, j, k, len, v;

@@ -5,7 +5,7 @@ root = window
 
 project =
   name: 'Skipper'
-  version: '2.0.0'
+  version: '2.0.1'
   creator: [
     'Redyyu'
   ]
@@ -88,6 +88,24 @@ root.Skipper = (opts) ->
       cookie.remove OPEN_ID_COOKIE
     catch e
       console.error e
+
+  parse_mail_data = (form_data)->
+    data = {}
+    if utils.isDict(form_data.fields)
+      for k, v of form_data.fields
+        data[k] = v
+    else if utils.isArray(form_data.fields)
+      for field in form_data.fields
+        key = field.name
+        if data[key]
+          if utils.isArray(data[key])
+            data[key].push field.value
+          else
+            data[key] = [data[key], field.value]
+        else
+          data[key] = field.value
+    return data
+
 
   parse_appt_data = (form_data)->
     data =
@@ -256,22 +274,15 @@ root.Skipper = (opts) ->
 
     mailto: (form_data)->
       _mailto = ->
-        if not utils.isArray(form_data)
-          throw 'form_data is required, and must be a list.'
-
         action = form_data.action.split("?")[0].split('#')[0]
         if action.toLowerCase().indexOf('mailto:') != 0
           action = 'mailto:' + action
         subject = form_data.title or ''
         mail_content = ''
-        last_key = null
-        for field, idx in form_data.fields
-          if last_key == field.name
-            mail_content = mail_content+', ' + field.value
-          else
-            mail_content += '\n' if idx > 0
-            mail_content = mail_content+field.name+': '+field.value
-          last_key = field.name
+
+        for k, v of parse_mail_data(form_data)
+          _value = if utils.isArray(v) then v.join(', ') else v
+          mail_content = mail_content+k+': '+_value+'\n'
 
         mail_content = encodeURIComponent(mail_content)
         return action+'?subject='+subject+'&body='+mail_content
@@ -341,7 +352,7 @@ utils =
     if !RegExp.$1
       s += (if s.length > 0 then '&' else '?') + kvp
     document.location.search = s
-    return {key, value}
+    return {key: value}
 
   addParam: (url, params)->
     if typeof params isnt 'object'
