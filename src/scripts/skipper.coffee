@@ -508,9 +508,9 @@ Ajax = ->
     xhr = new XMLHttpRequest()
     url = utils.addParam(opts.url, opts.params)
 
-    xhr.open type, url or '', true
+    xhr.open(type, url, true)
 
-    xhr.responseType = opts.responseType
+    xhr.responseType = opts.responseType or 'json'
     xhr.withCredentials = Boolean(opts.withCredentials)
 
     xhr.setRequestHeader 'Content-Type', opts.contentType
